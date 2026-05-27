@@ -355,6 +355,22 @@ body { position: fixed; inset: 0; }
 .botbar .it:hover .ic { filter: drop-shadow(0 0 8px var(--goldHi)); }
 .botbar .it .ic.s { background-image: url('/assets/svg/ic-sound.svg'); }
 .botbar .it .ic.m { background-image: url('/assets/svg/ic-menu.svg'); }
+.botbar .it .ic.i {
+  position: relative;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  width: 18px; height: 18px;
+  margin: 0 2px;
+}
+.botbar .it .ic.i::after {
+  content: 'i';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+}
 .botbar .v {
   color: var(--goldHi); font-weight: 700;
   font-family: 'Audiowide', 'Inter', sans-serif; letter-spacing: 0.5px;
@@ -960,24 +976,44 @@ body { position: fixed; inset: 0; }
   box-shadow: 0 0 6px var(--gold);
 }
 
-/* Tutorial responsive */
+/* Tutorial responsive — full-screen edge-to-edge on mobile */
 @media (max-width: 768px) {
-  .howto { gap: 10px; padding: 22px 14px 18px; }
-  .howtoLogoWrap { width: 180px; }
-  .maxWinBig { font-size: 26px; }
-  .maxWinBig span { font-size: 18px; }
+  .intro {
+    align-items: stretch !important;
+    justify-content: stretch !important;
+  }
+  .howto {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-height: 100vh; min-height: 100dvh;
+    gap: 14px;
+    padding: 28px 18px 22px;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  .howtoLogoWrap { width: clamp(180px, 60vw, 260px); }
+  .maxWinBig { font-size: 28px; }
+  .maxWinBig span { font-size: 20px; }
   .maxWinTop { font-size: 9px; letter-spacing: 4px; }
-  .howtoStage { height: 180px; }
-  .slideFeatures { gap: 8px; }
-  .featBadge      { width: 72px;  height: 72px; }
-  .featBadge.big  { width: 100px; height: 98px; }
-  .featLbl { font-size: 7.5px; letter-spacing: 1.5px; bottom: 6px; }
-  .howtoTitle { font-size: 14px; letter-spacing: 3px; }
-  .howtoDesc  { font-size: 11px; padding: 0 6px; }
-  .introStart { padding: 12px 32px; font-size: 14px; letter-spacing: 4px; }
-  .introArrow { width: 24px; height: 24px; }
+  .howtoStage { height: 200px; }
+  .slideFeatures { gap: 10px; }
+  .featBadge      { width: 80px;  height: 80px; }
+  .featBadge.big  { width: 112px; height: 108px; }
+  .featLbl { font-size: 8px; letter-spacing: 1.5px; bottom: 6px; }
+  .howtoTitle { font-size: 15px; letter-spacing: 3px; }
+  .howtoDesc  { font-size: 12px; padding: 0 6px; }
+  .introStart { padding: 14px 40px; font-size: 15px; letter-spacing: 4px; }
+  .introArrow { width: 26px; height: 26px; }
   .aigoName { font-size: 26px; letter-spacing: 6px; }
-  .loadBar { width: 200px; }
+  .loadBar { width: 220px; }
+  .loadLogo { width: clamp(180px, 60vw, 260px); }
+  /* Loading screen also fills */
+  .introLoad {
+    min-height: 100vh; min-height: 100dvh;
+    width: 100vw;
+    justify-content: center;
+    box-sizing: border-box;
+  }
 }
 @media (max-height: 720px) {
   .howto { gap: 8px; padding-top: 18px; }
