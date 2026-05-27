@@ -790,22 +790,36 @@ export default function Scene() {
     ctx.fillStyle = dg;
     ctx.beginPath(); ctx.arc(x, y, r * 0.84, 0, Math.PI * 2); ctx.fill();
     const t = now / 1000;
-    // Mixed palette matching the LEGEND_BADGES so the dispenser shows
-    // every ball type at a glance: orange / yellow / red / blue /
-    // purple / pink. 12 ball slots in a tight cluster.
+    // === Triangular ball pile at the bottom of the bowl ===
+    // 15 balls stacked in 5 rows (5,4,3,2,1) — bottom row sits in
+    // the lower arc of the bowl, each row above sits in the gaps of
+    // the row below it (real packing). Coordinates are normalised to
+    // the bowl radius `r` so the pile rescales with the dispenser.
+    //
+    // The whole pile ROCKS gently left-right on a 2.4s sine, and the
+    // light source rotates around each ball on a 6s loop so the
+    // highlight visibly moves (the balls read as slowly spinning).
     const cluster = [
-      { ox: -0.40, oy:  0.05, c: 'orange' },
-      { ox: -0.20, oy: -0.10, c: 'yellow' },
-      { ox:  0.00, oy:  0.10, c: 'red'    },
-      { ox:  0.22, oy: -0.05, c: 'orange' },
-      { ox:  0.40, oy:  0.04, c: 'blue'   },
-      { ox: -0.30, oy:  0.25, c: 'orange' },
-      { ox: -0.05, oy:  0.20, c: 'purple' },
-      { ox:  0.20, oy:  0.25, c: 'orange' },
-      { ox:  0.38, oy:  0.22, c: 'pink'   },
-      { ox: -0.20, oy: -0.30, c: 'yellow' },
-      { ox:  0.10, oy: -0.32, c: 'orange' },
-      { ox:  0.30, oy: -0.28, c: 'blue'   },
+      // Row 1 (bottom arc) — 5 balls
+      { ox: -0.62, oy:  0.46, c: 'orange' },
+      { ox: -0.32, oy:  0.60, c: 'red'    },
+      { ox:  0.00, oy:  0.64, c: 'yellow' },
+      { ox:  0.32, oy:  0.60, c: 'blue'   },
+      { ox:  0.62, oy:  0.46, c: 'orange' },
+      // Row 2 — 4 balls in the gaps above row 1
+      { ox: -0.46, oy:  0.20, c: 'purple' },
+      { ox: -0.15, oy:  0.32, c: 'orange' },
+      { ox:  0.15, oy:  0.32, c: 'pink'   },
+      { ox:  0.46, oy:  0.20, c: 'orange' },
+      // Row 3 — 3 balls
+      { ox: -0.30, oy: -0.02, c: 'orange' },
+      { ox:  0.00, oy:  0.06, c: 'red'    },
+      { ox:  0.30, oy: -0.02, c: 'yellow' },
+      // Row 4 — 2 balls
+      { ox: -0.15, oy: -0.24, c: 'blue'   },
+      { ox:  0.15, oy: -0.24, c: 'orange' },
+      // Row 5 (top of pile) — 1 ball
+      { ox:  0.00, oy: -0.44, c: 'purple' },
     ];
     const COLS = {
       orange: ['#FFE695', '#FA7909', '#5C3F08'],
@@ -815,30 +829,68 @@ export default function Scene() {
       purple: ['#E6A6FF', '#B946FF', '#3D0A5C'],
       pink:   ['#FFB6E0', '#E040A0', '#5C0A40'],
     };
+    // Gentle pile sway — ~±9° rocking around bowl centre
+    const sway = Math.sin(now / 2400) * 0.16;
+    const cosS = Math.cos(sway), sinS = Math.sin(sway);
+    const br = r * 0.22;
+    // Draw far→near so the upper-pile balls visually sit on top
+    // (row 1 bottom is rendered first → row 5 top is rendered last)
     for (let i = 0; i < cluster.length; i++) {
       const { ox, oy, c } = cluster[i];
       const [c0, c1, c2] = COLS[c];
-      const phi = i * 0.7;
-      const jx = Math.sin(t * 1.3 + phi) * 0.6;
-      const jy = Math.cos(t * 1.5 + phi) * 0.6;
-      const bx = x + (ox * r) + jx;
-      const by = y + (oy * r) + jy;
-      const br = r * 0.19;
-      // Outer glow halo coloured to the ball
+      // Per-ball jiggle for liveness
+      const phi = i * 0.65;
+      const jx = Math.sin(t * 1.4 + phi) * 0.5;
+      const jy = Math.cos(t * 1.6 + phi) * 0.5;
+      // Rotate base position by the sway around (0,0) bowl centre
+      const rx = ox * cosS - oy * sinS;
+      const ry = ox * sinS + oy * cosS;
+      const bx = x + (rx * r) + jx;
+      const by = y + (ry * r) + jy;
+      // === Ball body — radial gradient with deep rim ===
       ctx.save();
-      ctx.shadowColor = c1; ctx.shadowBlur = 6;
-      const bg = ctx.createRadialGradient(bx - br * 0.4, by - br * 0.45, 0.5, bx, by, br);
-      bg.addColorStop(0, c0);
-      bg.addColorStop(0.45, c1);
-      bg.addColorStop(1, c2);
+      ctx.shadowColor = c1; ctx.shadowBlur = 7;
+      const bg = ctx.createRadialGradient(
+        bx - br * 0.38, by - br * 0.42, 0,
+        bx, by, br
+      );
+      bg.addColorStop(0,    c0);
+      bg.addColorStop(0.42, c1);
+      bg.addColorStop(0.92, c2);
+      bg.addColorStop(1,    '#0a0805');
       ctx.fillStyle = bg;
       ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
-      // Specular highlight
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.beginPath();
-      ctx.arc(bx - br * 0.35, by - br * 0.45, br * 0.25, 0, Math.PI * 2);
-      ctx.fill();
+      // === Specular highlight — rotates around the ball so each ball
+      // looks like it's slowly spinning in place ===
+      const spin = now / 1800 + i * 0.45;
+      const hlAng = spin;
+      const hlR = br * 0.45;
+      const hlx = bx + Math.cos(hlAng) * br * 0.32;
+      const hly = by - Math.abs(Math.sin(hlAng)) * br * 0.32 - br * 0.18;
+      const hg = ctx.createRadialGradient(hlx, hly, 0, hlx, hly, hlR);
+      hg.addColorStop(0,   'rgba(255,255,255,0.95)');
+      hg.addColorStop(0.45,'rgba(255,255,255,0.35)');
+      hg.addColorStop(1,   'rgba(255,255,255,0)');
+      // Mask the highlight to the ball circle
+      ctx.save();
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.clip();
+      ctx.fillStyle = hg;
+      ctx.fillRect(bx - br, by - br, br * 2, br * 2);
+      ctx.restore();
+      // === Soft bottom rim light (ambient bounce off the bowl floor) ===
+      ctx.save();
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.clip();
+      const rim = ctx.createRadialGradient(
+        bx, by + br * 0.25, br * 0.3,
+        bx, by, br * 1.05
+      );
+      rim.addColorStop(0, 'rgba(255,224,138,0)');
+      rim.addColorStop(0.7, 'rgba(255,224,138,0)');
+      rim.addColorStop(1, 'rgba(255,224,138,0.32)');
+      ctx.fillStyle = rim;
+      ctx.fillRect(bx - br, by - br, br * 2, br * 2);
+      ctx.restore();
     }
     ctx.fillStyle = '#050404';
     ctx.strokeStyle = '#D4AF37';
