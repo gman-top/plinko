@@ -11,6 +11,7 @@ import BottomBar from './ui/BottomBar.jsx';
 import Cinematic from './ui/Cinematic.jsx';
 import FloatNumbers from './ui/FloatNumbers.jsx';
 import MobileMenu from './ui/MobileMenu.jsx';
+import MobileQuickControls from './ui/MobileQuickControls.jsx';
 
 /**
  * Full-viewport flex layout — no fixed 1440x1024 frame.
@@ -47,6 +48,7 @@ export default function App() {
         </div>
       </div>
       <div className="bottomArea" ref={bottomRef}>
+        <MobileQuickControls />
         <WinBar />
         <div className="desktopOnly">
           <BottomControls />

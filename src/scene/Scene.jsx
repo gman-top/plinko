@@ -40,6 +40,8 @@ export default function Scene() {
     dispenserBalls: [],         // real-physics objects bouncing inside the bowl
     dispenserSig: '',           // cache key — re-init balls when bowl resizes
     nextDispKick: 0,
+    pegCache: null,             // offscreen canvas for the static peg layer
+    slotCache: null,            // offscreen canvas for the static slot body
     lastT: performance.now(),
     nextMultAt: performance.now() + 4000,
     nextShootAt: performance.now() + 5000,
@@ -70,14 +72,20 @@ export default function Scene() {
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
       const w = Math.max(1, Math.floor(rect.width));
       const h = Math.max(1, Math.floor(rect.height));
-      canvas.width  = w * dpr;
-      canvas.height = h * dpr;
+      // Cap DPR aggressively on mobile — render area scales with DPR²,
+      // so a phone with DPR 3 renders 9× the pixels of a 1×. Cap at
+      // 1.6 on phones, 2 on desktop.
+      const isMobile = w <= 768;
+      const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.6 : 2);
+      canvas.width  = Math.ceil(w * dpr);
+      canvas.height = Math.ceil(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const st = stateRef.current;
       st.dpr = dpr; st.w = w; st.h = h;
+      st.pegCache = null;        // invalidate caches on resize
+      st.slotCache = null;
       computeGeometry();
       initNebula();
     };
@@ -149,6 +157,9 @@ export default function Scene() {
     st.ballR = Math.max(7, sp * 0.22);
 
     // Pegs (= stars) — give each its own twinkle phase
+    // Pegs/slots layout is about to change — invalidate cached layers
+    st.pegCache = null;
+    st.slotCache = null;
     st.pegs = [];
     for (let i = 0; i < r; i++) {
       const pegs = topPegs + i;
@@ -240,7 +251,10 @@ export default function Scene() {
       { h: 270, s: 65, l: 50 },   // violet
       { h: 12,  s: 90, l: 55 },   // fire
     ];
-    for (let i = 0; i < 5; i++) {
+    // Fewer, larger clouds on mobile — keeps the atmospheric feel but
+    // halves the screen-blended gradient passes per frame.
+    const cloudCount = st.w <= 768 ? 3 : 5;
+    for (let i = 0; i < cloudCount; i++) {
       const p = palette[i % palette.length];
       st.nebula.push({
         x: Math.random() * st.w,
@@ -335,8 +349,9 @@ export default function Scene() {
     const ballRest = 0.35;                // ball-ball bounciness
     const balls = st.dispenserBalls;
 
-    // Sub-step for stability when balls are stacked
-    const SUB = 3;
+    // Sub-step for stability when balls are stacked. Mobile does 2,
+    // desktop 3 — keeps the perceived motion smooth either way.
+    const SUB = st.w <= 768 ? 2 : 3;
     const sdt = dt / SUB;
     for (let s = 0; s < SUB; s++) {
       // Integrate gravity + position
@@ -704,63 +719,102 @@ export default function Scene() {
     ctx.restore();
   }
 
-  // STAR pegs with twinkle + cross flare
+  // STAR pegs — base star (halo + cross flare + core) is rendered ONCE
+  // to an offscreen canvas and just blit each frame. Per-frame work is
+  // limited to twinkle / hit overlays for visible animation.
+  function buildPegCache(st) {
+    const cnv = document.createElement('canvas');
+    cnv.width = Math.ceil(st.w * st.dpr);
+    cnv.height = Math.ceil(st.h * st.dpr);
+    const lc = cnv.getContext('2d');
+    lc.setTransform(st.dpr, 0, 0, st.dpr, 0, 0);
+
+    for (const p of st.pegs) {
+      const r = p.r;
+      // Outer halo
+      const hr = r * 2.4;
+      const g = lc.createRadialGradient(p.x, p.y, 0, p.x, p.y, hr);
+      g.addColorStop(0, 'rgba(255,230,149,0.45)');
+      g.addColorStop(0.6, 'rgba(212,123,55,0.18)');
+      g.addColorStop(1, 'rgba(255,230,149,0)');
+      lc.fillStyle = g;
+      lc.beginPath(); lc.arc(p.x, p.y, hr, 0, Math.PI * 2); lc.fill();
+      // Cross flares (horizontal + vertical)
+      const flareLen = r * 3;
+      const fg = lc.createLinearGradient(p.x - flareLen, p.y, p.x + flareLen, p.y);
+      fg.addColorStop(0, 'rgba(255,224,138,0)');
+      fg.addColorStop(0.45, 'rgba(255,224,138,0.65)');
+      fg.addColorStop(0.55, 'rgba(255,224,138,0.65)');
+      fg.addColorStop(1, 'rgba(255,224,138,0)');
+      lc.strokeStyle = fg;
+      lc.lineWidth = 1;
+      lc.beginPath();
+      lc.moveTo(p.x - flareLen, p.y);
+      lc.lineTo(p.x + flareLen, p.y);
+      lc.stroke();
+      const vg = lc.createLinearGradient(p.x, p.y - flareLen, p.x, p.y + flareLen);
+      vg.addColorStop(0, 'rgba(255,224,138,0)');
+      vg.addColorStop(0.45, 'rgba(255,224,138,0.65)');
+      vg.addColorStop(0.55, 'rgba(255,224,138,0.65)');
+      vg.addColorStop(1, 'rgba(255,224,138,0)');
+      lc.strokeStyle = vg;
+      lc.beginPath();
+      lc.moveTo(p.x, p.y - flareLen);
+      lc.lineTo(p.x, p.y + flareLen);
+      lc.stroke();
+      // Core
+      const cg = lc.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 1.1);
+      cg.addColorStop(0, '#FFFFFF');
+      cg.addColorStop(0.35, '#FFE695');
+      cg.addColorStop(0.85, '#D4AF37');
+      cg.addColorStop(1, 'rgba(120,80,20,0)');
+      lc.fillStyle = cg;
+      lc.beginPath(); lc.arc(p.x, p.y, r * 1.05, 0, Math.PI * 2); lc.fill();
+    }
+    return cnv;
+  }
+
   function drawStars(ctx, st, now) {
+    if (!st.pegCache) st.pegCache = buildPegCache(st);
+    // Single drawImage replaces ~400 gradient/fill ops per frame
+    ctx.drawImage(st.pegCache, 0, 0, st.w, st.h);
+
+    // Overlay: only the pegs that actually need animation right now
+    // (recent hits + bright twinkle peaks). Skip everything else.
     for (const p of st.pegs) {
       const age = (now - p.lastHit) / 280;
       const hit = Math.max(0, 1 - age);
-      const tw = 0.5 + Math.sin(now / 1000 * p.rate + p.phase) * 0.5;
+      const twRaw = Math.sin(now / 1000 * p.rate + p.phase);
+      // Only draw twinkle overlay near the peak of the cycle
+      const twBright = twRaw > 0.55 ? (twRaw - 0.55) * 2.2 : 0;
+      if (hit < 0.05 && twBright < 0.1) continue;
+
       const r = p.r;
-      const glow = 0.4 + tw * 0.4 + hit * 0.4;
-      // Outer halo
-      ctx.save();
-      const hr = r * (1.6 + tw + hit * 2);
-      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, hr);
-      g.addColorStop(0, `rgba(255,230,149,${0.55 * glow})`);
-      g.addColorStop(0.6, `rgba(212,123,55,${0.25 * glow})`);
-      g.addColorStop(1, 'rgba(255,230,149,0)');
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-      // Cross flares (vertical + horizontal lines)
-      ctx.save();
-      const flareLen = r * (2.5 + tw * 1.8 + hit * 2.5);
-      const fg = ctx.createLinearGradient(p.x - flareLen, p.y, p.x + flareLen, p.y);
-      fg.addColorStop(0, 'rgba(255,224,138,0)');
-      fg.addColorStop(0.45, `rgba(255,224,138,${0.6 + hit * 0.3})`);
-      fg.addColorStop(0.55, `rgba(255,224,138,${0.6 + hit * 0.3})`);
-      fg.addColorStop(1, 'rgba(255,224,138,0)');
-      ctx.strokeStyle = fg;
-      ctx.lineWidth = 0.9 + hit * 1.2;
-      ctx.shadowColor = '#FFE695';
-      ctx.shadowBlur = 6 + hit * 8;
-      ctx.beginPath();
-      ctx.moveTo(p.x - flareLen, p.y);
-      ctx.lineTo(p.x + flareLen, p.y);
-      ctx.stroke();
-      const vg = ctx.createLinearGradient(p.x, p.y - flareLen, p.x, p.y + flareLen);
-      vg.addColorStop(0, 'rgba(255,224,138,0)');
-      vg.addColorStop(0.45, `rgba(255,224,138,${0.6 + hit * 0.3})`);
-      vg.addColorStop(0.55, `rgba(255,224,138,${0.6 + hit * 0.3})`);
-      vg.addColorStop(1, 'rgba(255,224,138,0)');
-      ctx.strokeStyle = vg;
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y - flareLen);
-      ctx.lineTo(p.x, p.y + flareLen);
-      ctx.stroke();
-      ctx.restore();
-      // Star core (small bright spot)
-      ctx.save();
-      const cg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 1.1);
-      cg.addColorStop(0, '#FFFFFF');
-      cg.addColorStop(0.35, '#FFE695');
-      cg.addColorStop(0.85, hit > 0.2 ? '#FA7909' : '#D4AF37');
-      cg.addColorStop(1, 'rgba(120,80,20,0)');
-      ctx.fillStyle = cg;
-      ctx.shadowColor = '#FFE695';
-      ctx.shadowBlur = 4 + hit * 8;
-      ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.05, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
+      if (twBright > 0) {
+        const a = twBright * 0.45;
+        const og = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2.4);
+        og.addColorStop(0, `rgba(255,255,255,${a})`);
+        og.addColorStop(1, 'rgba(255,224,138,0)');
+        ctx.fillStyle = og;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r * 2.4, 0, Math.PI * 2); ctx.fill();
+      }
+      if (hit > 0) {
+        // Bright over-flash + expanding ring on recent hit
+        const a = hit;
+        const og = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2.5);
+        og.addColorStop(0, `rgba(255,255,255,${a * 0.85})`);
+        og.addColorStop(0.4, `rgba(255,224,138,${a * 0.55})`);
+        og.addColorStop(1, 'rgba(255,224,138,0)');
+        ctx.fillStyle = og;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.save();
+        ctx.strokeStyle = `rgba(255,255,255,${a * 0.7})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r + 10 * (1 - hit) + 2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   }
 

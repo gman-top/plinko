@@ -401,6 +401,55 @@ body { position: fixed; inset: 0; }
   animation: floatUp 1.5s ease-out forwards;
 }
 
+/* ===== MOBILE QUICK CONTROLS — always-visible LINES / RISK / BET ===== */
+.mobileQuick {
+  display: none;
+  position: absolute;
+  top: 8px; left: 10px; right: 10px;
+  height: 42px;
+  gap: 8px;
+  z-index: 8;
+}
+.mobileQuick .mq {
+  flex: 1;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 8px;
+  background: linear-gradient(180deg, rgba(15,11,7,.9), rgba(5,4,4,.95));
+  border: 1px solid rgba(212,175,55,0.55);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  filter: drop-shadow(0 0 4px rgba(212,175,55,0.2));
+}
+.mobileQuick .mq-arrow {
+  width: 16px; height: 18px;
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  cursor: pointer;
+  filter: drop-shadow(0 0 4px rgba(212,175,55,0.4));
+  flex-shrink: 0;
+}
+.mobileQuick .mq-arrow.l { background-image: url('/assets/svg/arrow-left.svg'); }
+.mobileQuick .mq-arrow.r { background-image: url('/assets/svg/arrow-right.svg'); }
+.mobileQuick .mq-arrow:active { transform: scale(0.85); }
+.mobileQuick .mq-mid {
+  flex: 1; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  line-height: 1;
+}
+.mobileQuick .mq-lbl {
+  font-family: 'Inter', sans-serif;
+  font-size: 8px; letter-spacing: 1.5px;
+  color: var(--textDim);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.mobileQuick .mq-val {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 14px;
+  color: var(--goldHi);
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 6px rgba(255,224,138,0.4);
+}
+
 /* ===================================================================
  * MOBILE LAYOUT — bottom-drawer pattern
  * =================================================================== */
@@ -519,18 +568,21 @@ body { position: fixed; inset: 0; }
 @media (max-width: 768px) {
   .desktopOnly { display: none !important; }
   .mobileMenuBtn { display: flex; }
+  .mobileQuick { display: flex; }
 
-  /* Tighter bottom area on phones */
-  .bottomArea { height: 170px; }
+  /* Bottom area taller so LINES/RISK/BET strip fits above the PLAY */
+  .bottomArea { height: 220px; }
   .playWrap {
     width: 140px; height: 140px;
-    bottom: 16px;
+    bottom: 26px;
   }
   .playWrap .playText { font-size: 30px; letter-spacing: 4px; }
+  /* WIN bar floats above the canvas (in boardArea), still tightly
+     above the quick-controls row */
   .winBar {
     width: clamp(260px, 92vw, 420px);
     height: 56px;
-    top: -40px;
+    top: -42px;
     gap: 16px;
     padding: 0 40px;
   }
@@ -552,8 +604,8 @@ body { position: fixed; inset: 0; }
 
 /* Even tighter for very narrow phones */
 @media (max-width: 380px) {
-  .bottomArea { height: 150px; }
-  .playWrap { width: 120px; height: 120px; bottom: 14px; }
+  .bottomArea { height: 200px; }
+  .playWrap { width: 120px; height: 120px; bottom: 24px; }
   .playWrap .playText { font-size: 26px; letter-spacing: 3px; }
   .winBar {
     width: clamp(240px, 94vw, 360px);
@@ -564,11 +616,16 @@ body { position: fixed; inset: 0; }
   }
   .winBar .num { font-size: 20px; }
   .winBar .lbl { font-size: 9px; letter-spacing: 3px; }
+  .mobileQuick { height: 38px; gap: 6px; }
+  .mobileQuick .mq { padding: 0 6px; }
+  .mobileQuick .mq-val { font-size: 12px; }
+  .mobileQuick .mq-lbl { font-size: 7.5px; }
 }
 
-/* Force drawer to never show on desktop */
+/* Force drawer / mobile chips to never show on desktop */
 @media (min-width: 769px) {
   .mobileMenuBtn,
+  .mobileQuick,
   .mobileDrawer { display: none !important; }
 }
 @keyframes floatUp {
