@@ -783,37 +783,40 @@ body { position: fixed; inset: 0; }
   display: grid;
   grid-template-rows: auto 1fr auto auto;
   align-items: center; justify-items: center;
-  width: min(900px, 92vw);
-  max-width: 92vw;
-  height: min(720px, 92vh); height: min(720px, 92dvh);
-  padding: 28px 32px 24px;
-  gap: 18px;
+  /* TRUE fullscreen — the modal is the screen */
+  width: 100vw; max-width: 100vw;
+  height: 100vh; height: 100dvh;
+  padding: clamp(20px, 3vh, 36px) clamp(80px, 9vw, 140px) clamp(18px, 2.5vh, 32px);
+  gap: clamp(14px, 2vh, 28px);
+  box-sizing: border-box;
   animation: introPop .55s cubic-bezier(.2,1.2,.3,1.1);
 }
 
-/* HEADER — slide count, logo, max-win badge on a horizontal row */
-.howtoHeader {
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column;
+/* TOP — logo centred, MAX WIN beneath, slide count off to the right */
+.howtoTop {
+  display: flex; flex-direction: column; align-items: center;
   gap: 8px;
   position: relative;
   width: 100%;
+  max-width: 720px;
 }
 .slideCount {
   position: absolute;
-  top: 6px; right: 6px;
+  top: 0; right: 0;
   font-family: 'Audiowide', sans-serif;
-  font-size: 12px; letter-spacing: 3px;
+  font-size: clamp(11px, 1.1vw, 14px);
+  letter-spacing: 3px;
   color: var(--goldHi); opacity: 0.7;
   display: flex; gap: 3px; align-items: baseline;
 }
 .slideCountSep { color: var(--gold); opacity: 0.5; margin: 0 2px; }
 
-.howtoLogoWrap {
-  width: clamp(180px, 18vw, 260px);
-  filter: drop-shadow(0 0 24px rgba(212,175,55,.5));
+.howtoLogo {
+  width: clamp(180px, 22vw, 320px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 0 28px rgba(212,175,55,.5));
 }
-.howtoLogo { width: 100%; height: auto; display: block; }
 
 .maxWinBadge {
   display: flex; flex-direction: column; align-items: center;
@@ -881,85 +884,121 @@ body { position: fixed; inset: 0; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Slide 0: HOW TO PLAY — three-step diagram */
-.slideSteps {
+/* Slide 0: HOW TO PLAY — three-step layout using actual game-like
+   chip + play button styling so the tutorial reads as the real
+   game, not as abstract icons. */
+.playSlide {
   display: flex; align-items: center; justify-content: center;
-  gap: 14px;
+  gap: clamp(16px, 3vw, 48px);
   flex-wrap: wrap;
+  width: 100%;
 }
-.step {
+.playStep {
   display: flex; flex-direction: column; align-items: center;
-  gap: 8px;
-  min-width: 130px;
+  gap: 10px;
+  min-width: 150px;
+  max-width: 220px;
 }
-.stepHead {
-  position: relative;
-  width: clamp(70px, 8vw, 96px);
-  height: clamp(70px, 8vw, 96px);
-  display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(circle at 35% 30%, rgba(212,175,55,0.18), rgba(28,20,11,0.55));
-  border: 1px solid rgba(212,175,55,0.55);
-  border-radius: 50%;
-  filter: drop-shadow(0 0 14px rgba(212,175,55,.35));
-}
-.stepN {
-  position: absolute;
-  top: -10px; right: -8px;
-  width: 24px; height: 24px;
+.psHead { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.psN {
+  width: 28px; height: 28px;
   border-radius: 50%;
   background: linear-gradient(180deg, var(--goldHi), var(--gold));
   color: #1a0f03;
   font-family: 'Audiowide', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 10px rgba(212,175,55,0.6);
+  box-shadow: 0 0 12px rgba(212,175,55,0.6);
 }
-.stepArt { display: flex; align-items: center; justify-content: center; }
-.stepCoin {
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--goldLite) 0%, var(--gold) 45%, var(--goldDeep) 100%);
-  box-shadow: 0 0 10px rgba(255,224,138,0.55), inset 0 0 6px rgba(0,0,0,0.3);
-}
-.stepDials { display: flex; gap: 5px; }
-.stepDial {
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  filter: drop-shadow(0 0 6px currentColor);
-}
-.stepDial.g { background: var(--green); color: var(--green); }
-.stepDial.a { background: var(--goldHi); color: var(--goldHi); }
-.stepDial.r { background: var(--wildHi); color: var(--wildHi); }
-.stepPlay {
+.psLbl {
   font-family: 'Audiowide', sans-serif;
-  font-size: 12px; letter-spacing: 2px;
-  color: var(--goldHi);
-  padding: 6px 12px;
-  background: linear-gradient(180deg, rgba(212,175,55,0.25), rgba(212,175,55,0.05));
-  border: 1px solid var(--gold);
-  border-radius: 4px;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 8px);
-}
-.stepTitle {
-  font-family: 'Audiowide', sans-serif;
-  font-size: 11px; letter-spacing: 2.5px;
+  font-size: clamp(11px, 1.1vw, 13px);
+  letter-spacing: 3px;
   color: var(--goldHi);
   text-shadow: 0 0 8px rgba(255,224,138,.3);
 }
-.stepHint {
+.psBody {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+.psHint {
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  color: var(--textDim);
+  font-size: clamp(10px, 1vw, 12px);
+  color: var(--cream); opacity: 0.7;
   letter-spacing: 0.5px;
   text-align: center;
-  max-width: 130px;
-  line-height: 1.4;
+  max-width: 180px;
+  line-height: 1.45;
 }
-.stepDiv {
-  width: 36px; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+.psSep {
+  width: 1px; height: clamp(90px, 10vh, 140px);
+  background: linear-gradient(180deg, transparent, var(--gold), transparent);
   align-self: center;
-  margin-top: -28px;
+}
+
+/* Fake .ctrl chip — mirrors the real game's chip styling using btn-bg.svg */
+.fakeCtrl {
+  width: clamp(120px, 14vw, 170px);
+  height: 44px;
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px;
+  background: url('/assets/svg/btn-bg.svg') no-repeat;
+  background-size: 100% 100%;
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+}
+.fakeCtrl.narrow { width: clamp(90px, 10vw, 120px); }
+.fakeCtrlArrow {
+  width: 10px; height: 12px;
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px var(--goldHi));
+}
+.fakeCtrlArrow.l { background-image: url('/assets/svg/arrow-left.svg'); }
+.fakeCtrlArrow.r { background-image: url('/assets/svg/arrow-right.svg'); }
+.fakeCtrlVal {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 18px;
+  color: var(--goldHi);
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(255,224,138,.5);
+}
+
+/* Risk icon row */
+.fakeRiskRow {
+  display: flex; gap: 8px; align-items: center;
+}
+.fakeRiskIc {
+  width: clamp(22px, 2.4vw, 28px); height: clamp(22px, 2.4vw, 28px);
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.fakeRiskIc.lo { color: var(--green); filter: drop-shadow(0 0 6px var(--green)); }
+.fakeRiskIc.md { color: var(--goldHi); filter: drop-shadow(0 0 6px var(--goldHi)); }
+.fakeRiskIc.hi { color: var(--wild); filter: drop-shadow(0 0 6px var(--wild)); }
+
+/* Fake PLAY button — replicates the real .playWrap/.playDisc */
+.fakePlay {
+  position: relative;
+  width: clamp(80px, 9vw, 110px);
+  height: clamp(80px, 9vw, 110px);
+  display: grid; place-items: center;
+  filter: drop-shadow(0 0 18px rgba(255, 224, 138, 0.65))
+          drop-shadow(0 0 40px rgba(212, 175, 55, 0.35));
+}
+.fakePlayDisc {
+  position: absolute; inset: 0;
+  background: url('/assets/svg/play-btn.svg') center/contain no-repeat;
+}
+.fakePlayText {
+  position: relative; z-index: 2;
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(15px, 1.7vw, 22px);
+  color: #fff;
+  letter-spacing: 3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7),
+               0 0 12px rgba(255, 255, 255, 0.6),
+               0 0 20px rgba(255, 224, 138, 0.85);
 }
 
 /* Slide 1: three triangle feature badges */
@@ -1003,12 +1042,43 @@ body { position: fixed; inset: 0; }
 }
 
 /* Slides 2-4: mini-board SVGs */
-.slideMini { width: 100%; height: 100%; padding: 4px 0; }
+.slideMini {
+  width: 100%; height: 100%; padding: 4px 0;
+  display: flex; align-items: center; justify-content: center;
+}
 .miniBoard {
   width: 100%; height: 100%;
-  max-width: clamp(320px, 38vw, 480px);
+  max-width: clamp(360px, 44vw, 560px);
   max-height: 100%;
   margin: 0 auto; display: block;
+}
+
+/* Slide 4: ribbon of multiplier colours alongside the board */
+.multBallSlide {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(14px, 2vw, 32px);
+}
+.multBallSide {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(28,20,11,.85), rgba(11,8,5,.92));
+  border: 1px solid rgba(212,175,55,0.4);
+  border-radius: 4px;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  filter: drop-shadow(0 0 10px rgba(212,175,55,0.25));
+}
+.ribChip {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(11px, 1vw, 13px);
+  letter-spacing: 1.5px;
+}
+.ribDot {
+  width: 16px; height: 16px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.ribLbl {
+  text-shadow: 0 0 6px currentColor;
 }
 
 /* Title + description block */
@@ -1133,35 +1203,36 @@ body { position: fixed; inset: 0; }
   box-shadow: 0 0 6px var(--gold);
 }
 
-/* Tutorial responsive — full-viewport on mobile, arrows compact */
+/* Tutorial responsive — already fullscreen on every breakpoint */
 @media (max-width: 768px) {
   .howto {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 100vh; height: 100dvh;
-    gap: 14px;
-    padding: 64px 50px 22px;
-    box-sizing: border-box;
-    grid-template-rows: auto 1fr auto auto;
+    padding: 44px 56px 18px;
+    gap: 12px;
   }
-  .slideCount { top: -42px; right: 10px; font-size: 11px; }
-  .howtoLogoWrap { width: clamp(160px, 56vw, 240px); }
-  .howtoStage { min-height: 160px; }
-  .slideSteps { gap: 8px; }
-  .stepDiv { display: none; }
-  .step { min-width: 90px; }
-  .stepHint { font-size: 9px; max-width: 96px; }
-  .miniBoard { max-width: 88vw; }
+  .howtoLogo { width: clamp(160px, 56vw, 240px); }
+  .playSlide { gap: 8px; }
+  .playStep { min-width: 90px; }
+  .psSep { display: none; }
+  .psHint { font-size: 10px; max-width: 110px; }
+  .fakeCtrl { width: 110px; height: 38px; }
+  .fakeCtrl.narrow { width: 80px; }
+  .fakeCtrlVal { font-size: 15px; }
+  .fakePlay { width: 64px; height: 64px; }
+  .fakePlayText { font-size: 13px; letter-spacing: 2px; }
+  .multBallSide { padding: 8px 10px; gap: 5px; }
+  .ribChip { font-size: 10px; }
+  .ribDot { width: 12px; height: 12px; }
+  .miniBoard { max-width: 92vw; }
   .howtoDesc  { font-size: 12px; padding: 0 6px; }
-  .introStart { padding: 14px 40px; font-size: 15px; letter-spacing: 4px; }
+  .introStart { padding: 13px 36px; font-size: 14px; letter-spacing: 4px; }
   .introArrow { width: 38px; height: 38px; }
-  .introArrow.l { left: 8px; }
-  .introArrow.r { right: 8px; }
+  .introArrow.l { left: 6px; }
+  .introArrow.r { right: 6px; }
   .introClose { width: 34px; height: 34px; top: 14px; right: 14px; }
+  .slideCount { font-size: 10px; }
   .aigoName { font-size: 26px; letter-spacing: 6px; }
   .loadBar { width: 220px; }
   .loadLogo { width: clamp(180px, 60vw, 260px); }
-  /* Loading screen also fills */
   .introLoad {
     min-height: 100vh; min-height: 100dvh;
     width: 100vw;
