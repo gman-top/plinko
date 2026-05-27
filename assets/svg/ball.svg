@@ -1,0 +1,36 @@
+<svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="ballMask" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="27" height="27">
+<circle cx="13.3069" cy="13.3069" r="13.3069" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#ballMask)">
+<circle cx="13.3069" cy="13.3069" r="13.3069" fill="url(#ballBase)"/>
+<circle cx="13.3069" cy="13.3069" r="13.3069" fill="url(#ballOrange)"/>
+<circle cx="13.3069" cy="13.3069" r="13.3069" fill="url(#ballHl)"/>
+<g filter="url(#ballShine)">
+<circle cx="13.334" cy="13.2803" r="13.2803" fill="url(#ballGloss)" fill-opacity="0.6"/>
+</g>
+</g>
+<defs>
+<filter id="ballShine" x="-19.19" y="-19.24" width="65.04" height="65.04" filterUnits="userSpaceOnUse">
+<feFlood flood-opacity="0"/>
+<feBlend in="SourceGraphic" in2="BackgroundImageFix"/>
+<feGaussianBlur stdDeviation="9.62"/>
+</filter>
+<radialGradient id="ballBase" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(15.12 10.38) rotate(114.34) scale(13.49)">
+<stop/>
+<stop offset="1" stop-color="#D4AF37"/>
+</radialGradient>
+<radialGradient id="ballOrange" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(6.57 7.27) rotate(56.38) scale(16.97)">
+<stop stop-color="#FA7909"/>
+<stop offset="1" stop-color="#FF6060" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="ballHl" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(22.38 6.41) rotate(135.22) scale(9.79)">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="ballGloss" x1="16.9" y1="3.8" x2="9.63" y2="19.59" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0.6"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>
