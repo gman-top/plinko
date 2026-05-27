@@ -157,11 +157,23 @@ export default function Scene() {
     }
     st.slotRowY = slotRowY;
 
-    const halfBase = (bottomPegs - 1) * sp / 2 + sp * 0.95;
-    st.apex = { x: cx, y: apexY - sp * 0.65 };
-    st.baseL = { x: cx - halfBase, y: slotRowY + slotH * 0.6 };
-    st.baseR = { x: cx + halfBase, y: slotRowY + slotH * 0.6 };
-    st.dispenser = { x: cx, y: apexY - sp * 1.5, r: Math.min(58, sp * 1.4) };
+    // === Triangle that PROPERLY wraps every peg row + contains the slot row.
+    //
+    // Math: outermost peg at row i sits at x = (i+2)*sp/2 from centre. That
+    // line has slope dx/dy = 0.5 (i.e. x grows by sp/2 per row of sp height).
+    // For a rail from apex (cx, apex.y) down to a base corner to be tangent
+    // to every outermost peg, we need:
+    //   apex 2*sp above the first peg row, and
+    //   base half-width = total triangle height / 2.
+    // That way each peg sits flush against the inside of the rail.
+    const slotRowBottom = slotRowY + slotH + 4;
+    const apexUp = 2 * sp;
+    st.apex = { x: cx, y: apexY - apexUp };
+    const totalH = slotRowBottom - st.apex.y;
+    const halfBase = totalH / 2;
+    st.baseL = { x: cx - halfBase, y: slotRowBottom };
+    st.baseR = { x: cx + halfBase, y: slotRowBottom };
+    st.dispenser = { x: cx, y: apexY - sp * 2.4, r: Math.min(58, sp * 1.4) };
 
     // Constellation links: for each peg, connect to its nearest 2-3
     // neighbours in the next row (so we draw faint diagonal lines that
@@ -335,15 +347,9 @@ export default function Scene() {
             multStarBurst(m.x, m.y, m.value);
           }
         }
-        // Side rails
-        if (b.x < st.baseL.x + b.r * 0.5) {
-          b.x = st.baseL.x + b.r * 0.5;
-          b.vx = Math.abs(b.vx) * 0.6;
-        }
-        if (b.x > st.baseR.x - b.r * 0.5) {
-          b.x = st.baseR.x - b.r * 0.5;
-          b.vx = -Math.abs(b.vx) * 0.6;
-        }
+        // Angled rail collision (proper containment along the diagonal)
+        reflectOffRail(b, st.apex, st.baseL, true);
+        reflectOffRail(b, st.apex, st.baseR, false);
       }
     }
 
@@ -793,47 +799,116 @@ export default function Scene() {
     if (!st.slots.length) return;
     const first = st.slots[0], last = st.slots[st.slots.length - 1];
     const totalW = (last.x + last.w) - first.x;
-    const ribbonY = first.y - 4;
+    const slotMs = st.slotMs;
+
+    // === Top gold ribbon (entry edge — every slot lights up here) ===
+    const ribbonY = first.y - 5;
     const rg = ctx.createLinearGradient(first.x, ribbonY, first.x + totalW, ribbonY);
     rg.addColorStop(0,   'rgba(212,123,55,0)');
-    rg.addColorStop(0.1, 'rgba(212,123,55,0.8)');
+    rg.addColorStop(0.08,'rgba(212,123,55,0.85)');
     rg.addColorStop(0.5, '#FFE695');
-    rg.addColorStop(0.9, 'rgba(212,123,55,0.8)');
+    rg.addColorStop(0.92,'rgba(212,123,55,0.85)');
     rg.addColorStop(1,   'rgba(212,123,55,0)');
     ctx.save();
-    ctx.shadowColor = '#FFE695'; ctx.shadowBlur = 8;
+    ctx.shadowColor = '#FFE695'; ctx.shadowBlur = 10;
     ctx.fillStyle = rg;
-    ctx.fillRect(first.x, ribbonY, totalW, 1.6);
+    ctx.fillRect(first.x - 4, ribbonY, totalW + 8, 2);
     ctx.restore();
-    const slotMs = st.slotMs;
+
+    // === Per-slot chamber ===
     for (let i = 0; i < st.slots.length; i++) {
       const sl = st.slots[i];
       const m = slotMs[i] ?? 0.5;
       const col = slotColor(m);
       const age = (now - sl.lastHit) / 700;
-      const p = Math.max(0, 1 - age);
-      const w = sl.w, h = sl.h + p * 8, y = sl.y - p * 4, x = sl.x;
+      const hit = Math.max(0, 1 - age);
+      // High-value slots breathe even at rest
+      const pulse = m >= 50 ? 0.5 + 0.5 * Math.sin(now / 320 + i * 0.4)
+                  : m >= 10 ? 0.3 + 0.3 * Math.sin(now / 460 + i * 0.5)
+                  : 0;
+      const k = Math.max(hit, pulse);
+
+      const w = sl.w + k * 4, h = sl.h + k * 6;
+      const x = sl.x - k * 2;
+      const y = sl.y - k * 3;
+
+      // 1. Drop shadow under chamber for depth
       ctx.save();
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      roundRect(ctx, x, y + 3, w, h, 6); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      roundRect(ctx, x, y + 5, w, h, 7); ctx.fill();
       ctx.restore();
+
+      // 2. Outer body gradient
       ctx.save();
-      ctx.shadowColor = col.bright; ctx.shadowBlur = 8 + p * 22;
-      const sg = ctx.createLinearGradient(0, y, 0, y + h);
-      sg.addColorStop(0, col.bright);
-      sg.addColorStop(0.5, col.bright);
-      sg.addColorStop(1, col.deep);
-      ctx.fillStyle = sg;
-      roundRect(ctx, x, y, w, h, 6); ctx.fill();
-      ctx.shadowBlur = 0;
-      const gh = ctx.createLinearGradient(0, y, 0, y + h * 0.5);
-      gh.addColorStop(0, 'rgba(255,255,255,0.4)');
+      ctx.shadowColor = col.bright;
+      ctx.shadowBlur = 12 + k * 26;
+      const bg = ctx.createLinearGradient(0, y, 0, y + h);
+      bg.addColorStop(0,    col.bright);
+      bg.addColorStop(0.55, col.bright);
+      bg.addColorStop(1,    col.deep);
+      ctx.fillStyle = bg;
+      roundRect(ctx, x, y, w, h, 7); ctx.fill();
+      ctx.restore();
+
+      // 3. Inner illuminated chamber (radial glow from centre)
+      ctx.save();
+      const cxs = x + w / 2, cys = y + h / 2;
+      const ig = ctx.createRadialGradient(cxs, cys, 0, cxs, cys, w * 0.65);
+      ig.addColorStop(0, `rgba(255,255,255,${0.18 + k * 0.4})`);
+      ig.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = ig;
+      roundRect(ctx, x + 1, y + 1, w - 2, h - 2, 6); ctx.fill();
+      ctx.restore();
+
+      // 4. Glossy upper highlight (top half lighter)
+      ctx.save();
+      const gh = ctx.createLinearGradient(0, y, 0, y + h * 0.55);
+      gh.addColorStop(0, 'rgba(255,255,255,0.42)');
       gh.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = gh;
-      roundRect(ctx, x + 1, y + 1, w - 2, h * 0.45, 5); ctx.fill();
-      ctx.strokeStyle = col.bright; ctx.lineWidth = 1 + p * 1.5;
-      roundRect(ctx, x, y, w, h, 6); ctx.stroke();
+      roundRect(ctx, x + 1.5, y + 1.5, w - 3, h * 0.5, 5); ctx.fill();
       ctx.restore();
+
+      // 5. Side LED strips (thin gold lines on the inner edges)
+      ctx.save();
+      ctx.shadowColor = '#FFE695'; ctx.shadowBlur = 6;
+      ctx.fillStyle = `rgba(255,230,149,${0.55 + k * 0.4})`;
+      ctx.fillRect(x + 2.5, y + 3, 1, h - 6);
+      ctx.fillRect(x + w - 3.5, y + 3, 1, h - 6);
+      ctx.restore();
+
+      // 6. Top emissive edge (bright LED bar across top of chamber)
+      ctx.save();
+      const teg = ctx.createLinearGradient(x, y, x + w, y);
+      teg.addColorStop(0, 'rgba(255,224,138,0)');
+      teg.addColorStop(0.5, `rgba(255,224,138,${0.9 + k * 0.1})`);
+      teg.addColorStop(1, 'rgba(255,224,138,0)');
+      ctx.fillStyle = teg;
+      ctx.shadowColor = '#FFE695'; ctx.shadowBlur = 8;
+      ctx.fillRect(x + 2, y + 1, w - 4, 1.5);
+      ctx.restore();
+
+      // 7. Outer stroke
+      ctx.save();
+      ctx.strokeStyle = col.bright;
+      ctx.lineWidth = 1.2 + k * 1.8;
+      roundRect(ctx, x, y, w, h, 7); ctx.stroke();
+      ctx.restore();
+
+      // 8. High-value danger flicker — tiny sparks on ×50+ slots
+      if (m >= 50 && Math.random() < 0.06) {
+        const sx = x + 4 + Math.random() * (w - 8);
+        const sy = y + 4 + Math.random() * (h - 8);
+        st.particles.push({
+          x: sx, y: sy,
+          vx: (Math.random() - 0.5) * 80,
+          vy: -20 - Math.random() * 60,
+          r: 1 + Math.random() * 1.4,
+          life: 1, decay: 3, color: col.bright, grav: 200,
+        });
+      }
+
+      // 9. Multiplier value text
       ctx.save();
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
@@ -846,6 +921,20 @@ export default function Scene() {
       ctx.fillText(txt, x + w / 2, y + h / 2);
       ctx.restore();
     }
+
+    // === Bottom edge frame (gold line below the slot row, connecting to rails) ===
+    const bottomY = first.y + first.h + 2;
+    ctx.save();
+    const bg = ctx.createLinearGradient(st.baseL.x, bottomY, st.baseR.x, bottomY);
+    bg.addColorStop(0,   'rgba(212,123,55,0)');
+    bg.addColorStop(0.08,'rgba(212,123,55,0.85)');
+    bg.addColorStop(0.5, '#FFE695');
+    bg.addColorStop(0.92,'rgba(212,123,55,0.85)');
+    bg.addColorStop(1,   'rgba(212,123,55,0)');
+    ctx.fillStyle = bg;
+    ctx.shadowColor = '#FFE695'; ctx.shadowBlur = 8;
+    ctx.fillRect(st.baseL.x, bottomY, st.baseR.x - st.baseL.x, 1.5);
+    ctx.restore();
   }
 
   function drawParticles(ctx, st) {
@@ -928,6 +1017,36 @@ export default function Scene() {
   }
 
   return <canvas ref={canvasRef} className="board-canvas" />;
+}
+
+// Bounce a ball off an angled rail (line segment apex→base).
+// Inward normal points toward the triangle centre. If the ball has
+// crossed past the line (signed distance < ballRadius), we push it
+// back inside and reflect its velocity component normal to the rail.
+function reflectOffRail(b, apex, base, isLeft) {
+  const dx = base.x - apex.x, dy = base.y - apex.y;
+  const len = Math.hypot(dx, dy);
+  if (len < 0.001) return;
+  const tx = dx / len, ty = dy / len;
+  // Inward normal — rotate the apex→base tangent 90° toward centre.
+  // Left rail: tangent goes down-LEFT, inward = upper-RIGHT (CW rotate by 90°)
+  // Right rail: tangent goes down-RIGHT, inward = upper-LEFT (CCW rotate by 90°)
+  const nx = isLeft ? -ty :  ty;
+  const ny = isLeft ?  tx : -tx;
+
+  const px = b.x - apex.x, py = b.y - apex.y;
+  const signed = px * nx + py * ny;  // > 0 = inside
+  if (signed >= b.r) return;
+  const overlap = b.r - signed;
+  b.x += nx * overlap;
+  b.y += ny * overlap;
+  const vDot = b.vx * nx + b.vy * ny;
+  if (vDot < 0) {
+    const e = 0.55;
+    b.vx -= (1 + e) * vDot * nx;
+    b.vy -= (1 + e) * vDot * ny;
+    b.vx += (Math.random() - 0.5) * 16;
+  }
 }
 
 function slotColor(m) {
