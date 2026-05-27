@@ -110,9 +110,15 @@ export default function Scene() {
     const bottomPegs = topPegs + r - 1;
     const slotCount = bottomPegs - 1;
 
-    const sideMargin = Math.max(140, st.w * 0.17);
-    const topMargin = 110;
-    const bottomMargin = 70;
+    // On mobile (≤768px) side panels are hidden inside the drawer, so the
+    // canvas can use almost the full width. On desktop we leave room for
+    // the stats table (left) and legend / lines / risk (right).
+    const isMobile = st.w <= 768;
+    const sideMargin = isMobile
+      ? Math.max(16, st.w * 0.04)
+      : Math.max(140, st.w * 0.17);
+    const topMargin = isMobile ? 64 : 110;
+    const bottomMargin = isMobile ? 50 : 70;
     const availW = st.w - sideMargin * 2;
     const availH = st.h - topMargin - bottomMargin;
 

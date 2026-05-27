@@ -391,6 +391,168 @@ body { position: fixed; inset: 0; }
   color: var(--fnCol);
   animation: floatUp 1.5s ease-out forwards;
 }
+
+/* ===================================================================
+ * MOBILE LAYOUT — bottom-drawer pattern
+ * =================================================================== */
+.mobileMenuBtn {
+  display: none;
+  position: fixed;
+  top: 12px; right: 12px;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(28,20,11,.95), rgba(5,4,4,.95));
+  border: 1px solid var(--gold);
+  color: var(--goldHi);
+  font-family: 'Inter', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  box-shadow: 0 0 14px rgba(212,175,55,.4);
+  transition: transform .15s, box-shadow .15s;
+}
+.mobileMenuBtn:hover { box-shadow: 0 0 22px rgba(255,224,138,.6); }
+.mobileMenuBtn:active { transform: scale(.92); }
+
+.mobileDrawer {
+  position: fixed; inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+.mobileDrawer .drawerBackdrop {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background .3s ease;
+  pointer-events: none;
+}
+.mobileDrawer.open .drawerBackdrop {
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+.mobileDrawer .drawerPanel {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, rgba(28,20,11,.97), rgba(5,4,4,.99));
+  border-top: 1px solid var(--gold);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -16px 40px rgba(0,0,0,.7), 0 0 30px rgba(212,175,55,.25);
+  padding: 14px 18px 24px;
+  transform: translateY(100%);
+  transition: transform .35s cubic-bezier(.2, .9, .3, 1.1);
+  pointer-events: auto;
+  max-height: 88vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.mobileDrawer.open .drawerPanel { transform: translateY(0); }
+.drawerHandle {
+  width: 52px; height: 4px;
+  background: rgba(212, 175, 55, 0.55);
+  border-radius: 2px;
+  margin: 0 auto 14px;
+}
+.drawerTitle {
+  text-align: center;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 13px; letter-spacing: 5px;
+  color: var(--goldHi);
+  text-shadow: 0 0 10px rgba(212,175,55,.5);
+  margin-bottom: 18px;
+}
+.drawerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+  margin-bottom: 20px;
+}
+.drawerGrid .panel {
+  /* Reset desktop absolute positioning when inside the drawer */
+  position: relative !important;
+  left: auto !important; right: auto !important;
+  top: auto !important; bottom: auto !important;
+  width: auto !important;
+}
+.drawerGrid .panel .ctrl,
+.drawerGrid .panel .buyFeatIcons,
+.drawerGrid .panel .riskIcons {
+  width: 100%;
+}
+.drawerSection {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(212, 175, 55, 0.18);
+}
+.drawerSectionTitle {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 11px; letter-spacing: 4px;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.drawerSection .legend {
+  position: relative; right: auto; top: auto;
+  align-items: stretch;
+}
+.drawerSection .legend .banner {
+  justify-content: space-around;
+  gap: 12px;
+}
+.drawerSection .statsTbl {
+  position: relative;
+  left: auto; top: auto; width: auto;
+}
+.drawerSection .statsTbl .rows { max-height: 240px; overflow-y: auto; }
+
+/* ====== MEDIA QUERIES — hide what's not needed ====== */
+@media (max-width: 768px) {
+  .desktopOnly { display: none !important; }
+  .mobileMenuBtn { display: flex; }
+
+  /* Tighter bottom area on phones */
+  .bottomArea { height: 170px; }
+  .playWrap {
+    width: 140px; height: 140px;
+    bottom: 16px;
+  }
+  .playWrap .playText { font-size: 30px; letter-spacing: 4px; }
+  .winBar {
+    width: clamp(220px, 86vw, 360px);
+    height: 52px;
+    top: -38px;
+  }
+  .winBar .lbl { font-size: 10px; letter-spacing: 3px; }
+  .winBar .num { font-size: 23px; letter-spacing: 1.5px; }
+
+  /* Compact bottom info bar */
+  .botbar {
+    bottom: 4px;
+    padding: 0 16px;
+    font-size: 9.5px;
+    letter-spacing: 1px;
+  }
+  .botbar .l, .botbar .r { gap: 14px; }
+  .botbar .it span:first-child { display: none; }   /* hide "BALANCE" / "BET AMOUNT" labels */
+  .botbar .it .ic { width: 20px; height: 20px; }
+  .botbar .v { font-size: 11px; }
+}
+
+/* Even tighter for very narrow phones */
+@media (max-width: 380px) {
+  .bottomArea { height: 150px; }
+  .playWrap { width: 120px; height: 120px; bottom: 14px; }
+  .playWrap .playText { font-size: 26px; letter-spacing: 3px; }
+  .winBar { width: clamp(200px, 90vw, 320px); height: 48px; top: -32px; }
+  .winBar .num { font-size: 20px; }
+}
+
+/* Force drawer to never show on desktop */
+@media (min-width: 769px) {
+  .mobileMenuBtn,
+  .mobileDrawer { display: none !important; }
+}
 @keyframes floatUp {
   0%   { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
   15%  { transform: translate(-50%, -12px) scale(1.25); opacity: 1; }

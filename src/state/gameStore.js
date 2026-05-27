@@ -23,6 +23,7 @@ export const useGame = create((set, get) => ({
   lastWinTime: 0,
   soundOn: false,
   cinematic: null,      // { type: 'jackpot' | 'wild' | ... }
+  menuOpen: false,      // mobile bottom drawer visibility
 
   // --- derived ---
   cost: () => {
@@ -51,6 +52,8 @@ export const useGame = create((set, get) => ({
   setBalls: (v) => set({ ballsAmount: Math.max(1, Math.min(10, v)) }),
   toggleFeature: (k) => set(s => ({ features: { ...s.features, [k]: !s.features[k] } })),
   toggleSound: () => set(s => ({ soundOn: !s.soundOn })),
+  toggleMenu:  () => set(s => ({ menuOpen: !s.menuOpen })),
+  closeMenu:   () => set({ menuOpen: false }),
 
   setCinematic: (cin) => set({ cinematic: cin }),
 

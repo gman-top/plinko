@@ -10,6 +10,7 @@ import WinBar from './ui/WinBar.jsx';
 import BottomBar from './ui/BottomBar.jsx';
 import Cinematic from './ui/Cinematic.jsx';
 import FloatNumbers from './ui/FloatNumbers.jsx';
+import MobileMenu from './ui/MobileMenu.jsx';
 
 /**
  * Full-viewport flex layout — no fixed 1440x1024 frame.
@@ -36,18 +37,24 @@ export default function App() {
     <div id="stage">
       <div className="boardArea">
         <Scene />
-        <Logo />
-        <HistoryTable />
-        <Legend />
-        <RightControls />
         <FloatNumbers />
+        {/* Side-panel UI — hidden on mobile via CSS, mirrored in <MobileMenu /> */}
+        <div className="desktopOnly">
+          <Logo />
+          <HistoryTable />
+          <Legend />
+          <RightControls />
+        </div>
       </div>
       <div className="bottomArea" ref={bottomRef}>
         <WinBar />
-        <BottomControls />
+        <div className="desktopOnly">
+          <BottomControls />
+        </div>
         <PlayButton />
         <BottomBar />
       </div>
+      <MobileMenu />
       <Cinematic />
     </div>
   );
