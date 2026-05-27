@@ -3,7 +3,7 @@ import { MULT_TABLE } from './config.js';
 import * as Sounds from '../audio/sounds.js';
 
 const LS_SOUND = 'plinko-sound-v1';
-const LS_INTRO = 'plinko-intro-v1';
+const LS_INTRO = 'plinko-intro-v2';
 const initialSoundOn = (() => {
   try { return localStorage.getItem(LS_SOUND) !== '0'; } catch { return true; }
 })();

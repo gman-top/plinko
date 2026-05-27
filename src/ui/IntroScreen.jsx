@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useGame } from '../state/gameStore.js';
 import * as Sounds from '../audio/sounds.js';
 
+// Vite rewrites CSS url() to include the base path automatically, but
+// JSX src="..." strings are passed through verbatim. So we have to
+// prefix manually for the production build at /plinko/.
+const B = import.meta.env.BASE_URL;
+const ASSET = (p) => `${B}${p.replace(/^\//, '')}`;
+
 /**
  * Pre-game overlay with two acts:
  *   ACT 1 — loading: AIGO Studios mark + progress bar (~1.4s)
@@ -65,7 +71,7 @@ export default function IntroScreen() {
       {phase === 'howto' && (
         <div className="howto">
           <div className="howtoLogoWrap">
-            <img className="howtoLogo" src="/assets/svg/logo-plinko.svg" alt="PLINKO GONE WILD" />
+            <img className="howtoLogo" src={ASSET('assets/svg/logo-plinko.svg')} alt="PLINKO GONE WILD" />
           </div>
           <div className="maxWinBadge">
             <div className="maxWinTop">MAX WIN</div>
@@ -122,13 +128,13 @@ function SlideFeatures() {
   return (
     <div className="slide slideFeatures">
       <FeatureBadge label="MULTIPLIERS" small>
-        <img src="/assets/svg/risk-multi.svg" alt="" />
+        <img src={ASSET('assets/svg/risk-multi.svg')} alt="" />
       </FeatureBadge>
       <FeatureBadge big>
-        <img src="/assets/svg/risk-vortex.svg" alt="" />
+        <img src={ASSET('assets/svg/risk-vortex.svg')} alt="" />
       </FeatureBadge>
       <FeatureBadge label="BALL CHANCE" small>
-        <img src="/assets/svg/risk-flame.svg" alt="" />
+        <img src={ASSET('assets/svg/risk-flame.svg')} alt="" />
       </FeatureBadge>
     </div>
   );
