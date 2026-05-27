@@ -40,7 +40,7 @@ body{position:fixed;inset:0}
   filter:drop-shadow(0 0 16px rgba(255,224,138,.35))}
 
 /* === LEFT stats === */
-.statsTbl{position:absolute;left:60px;top:200px;width:330px;font-size:11px;color:#FFEAA5}
+.statsTbl{position:absolute;left:60px;top:230px;width:330px;font-size:11px;color:#FFEAA5}
 .statsTbl .head{display:grid;grid-template-columns:1fr 1.1fr 1fr 1fr;gap:6px;padding:0 6px 10px;letter-spacing:1.5px;font-size:10px;color:#8A7A5E;font-weight:600;border-bottom:1px solid rgba(212,175,55,.3)}
 .statsTbl .rowsBox{margin-top:6px;display:flex;flex-direction:column;gap:2px;max-height:380px;overflow:hidden}
 .statsTbl .r{display:grid;grid-template-columns:1fr 1.1fr 1fr 1fr;gap:6px;padding:5px 6px;border-bottom:1px solid rgba(58,43,20,.4);font-size:11px;animation:fadeIn .35s}
@@ -48,15 +48,15 @@ body{position:fixed;inset:0}
 @keyframes fadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
 
 /* === BOARD === */
-#boardWrap{position:absolute;left:50%;top:140px;transform:translateX(-50%);width:560px;height:700px;z-index:5;pointer-events:auto}
+#boardWrap{position:absolute;left:50%;top:200px;transform:translateX(-50%);width:560px;height:600px;z-index:5;pointer-events:auto}
 #board{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:2}
 
 /* Triangle diagonal SVGs (LINES on the sides) — Vector 10 from Figma, mirrored */
 .triLine{position:absolute;width:195px;height:470px;pointer-events:none;z-index:1;
   background:url('assets/svg/tri-line.svg') no-repeat;background-size:100% 100%;
   filter:drop-shadow(0 0 14px rgba(212,123,55,.55))}
-.triLine.left{top:200px;left:calc(50% - 195px)}
-.triLine.right{top:200px;left:50%;transform:scaleX(-1);transform-origin:left center}
+.triLine.left{top:210px;left:calc(50% - 195px)}
+.triLine.right{top:210px;left:50%;transform:scaleX(-1);transform-origin:left center}
 /* Animated sweep along the lines */
 .triLine::after{content:'';position:absolute;inset:0;
   background:url('assets/svg/tri-line.svg') no-repeat;background-size:100% 100%;
@@ -67,8 +67,8 @@ body{position:fixed;inset:0}
   filter:drop-shadow(0 0 14px #FFE695);animation:triSweep 3.6s linear infinite}
 @keyframes triSweep{0%{-webkit-mask-position:0 -120%;mask-position:0 -120%}100%{-webkit-mask-position:0 220%;mask-position:0 220%}}
 
-/* Dispenser at top of board — Figma asset stack */
-.dispenser{position:absolute;left:50%;top:80px;transform:translate(-50%,-50%);width:130px;height:130px;z-index:4;pointer-events:none}
+/* Dispenser at the very top — Figma asset stack */
+.dispenser{position:absolute;left:50%;top:70px;transform:translate(-50%,-50%);width:130px;height:130px;z-index:4;pointer-events:none}
 .dispenser .ring{position:absolute;inset:-30px;
   background:url('assets/svg/dispenser-ring.svg') center/contain no-repeat;
   filter:drop-shadow(0 0 14px rgba(255,224,138,.7));
@@ -85,44 +85,47 @@ body{position:fixed;inset:0}
   background:linear-gradient(180deg, #050404, #1A140C);
   border:1px solid rgba(212,175,55,.7);box-shadow:0 0 6px rgba(212,175,55,.5),inset 0 0 4px #000}
 
-/* Inline WIN bar — uses Figma's win-bar SVG */
-.winBar{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);width:360px;height:64px;z-index:4;
+/* Inline WIN bar — uses Figma's win-bar SVG. Positioned ABOVE the PLAY
+   button so it visually crowns the controls area, matching the
+   "Multiplier Active" Figma frame. */
+.winBar{position:absolute;left:50%;bottom:200px;transform:translateX(-50%);width:380px;height:64px;z-index:11;
   background:url('assets/svg/win-bar.svg') center/100% 100% no-repeat;
   filter:drop-shadow(0 0 14px rgba(0,169,145,.4));
-  display:flex;align-items:center;justify-content:center;gap:18px;opacity:.55;transition:.3s;pointer-events:none}
-.winBar.on{opacity:1;filter:drop-shadow(0 0 22px rgba(255,224,138,.8))}
-.winBar .lbl{font-size:11px;letter-spacing:3px;color:#8A7A5E;font-weight:600;text-transform:uppercase}
-.winBar .num{font-family:'Cinzel',serif;font-size:22px;font-weight:800;color:#FFE695;letter-spacing:1px;
-  text-shadow:0 0 10px rgba(255,224,138,.8);transition:color .25s;line-height:1}
+  display:flex;align-items:center;justify-content:center;gap:14px;opacity:0;transition:opacity .25s,filter .25s;pointer-events:none}
+.winBar.on{opacity:1;filter:drop-shadow(0 0 22px rgba(255,224,138,.85))}
+.winBar .lbl{font-size:11px;letter-spacing:3px;color:#FFE695;font-weight:600;text-transform:uppercase}
+.winBar .num{font-family:'Cinzel',serif;font-size:24px;font-weight:800;color:#FFE695;letter-spacing:1px;
+  text-shadow:0 0 12px rgba(255,224,138,.8);transition:color .25s;line-height:1}
 .winBar.win .num{animation:winPulse .6s cubic-bezier(.2,1.2,.3,1.1)}
 .winBar.big .num{color:#FFB347;text-shadow:0 0 16px rgba(255,107,26,.9)}
 .winBar.mega .num{color:#FF8C42;text-shadow:0 0 16px rgba(255,45,45,.9)}
 .winBar.loss .num{color:#8A7A5E;text-shadow:none}
 @keyframes winPulse{0%{transform:scale(.5);opacity:0}45%{transform:scale(1.25);opacity:1}100%{transform:scale(1);opacity:1}}
 
+/* === TOP LEGEND BAR — the 6 multiplier-ball colors === */
+.topLegend{position:absolute;left:50%;top:155px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;z-index:6;pointer-events:none}
+.legendBanner{display:flex;align-items:center;gap:18px;padding:6px 22px;
+  background:linear-gradient(180deg, rgba(15,11,7,.85), rgba(5,4,4,.92));
+  border:1px solid rgba(212,175,55,.7);
+  clip-path:polygon(14px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  filter:drop-shadow(0 0 8px rgba(212,175,55,.3))}
+.lb{display:flex;align-items:center;gap:6px;font-family:'Inter';font-size:13px;font-weight:700;color:#fff;letter-spacing:.5px}
+.lb .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;
+  background:radial-gradient(circle at 35% 30%, #fff 0%, var(--c1) 35%, var(--c2) 100%);
+  box-shadow:0 0 6px var(--c1)}
+.lb.orange{--c1:#FA7909;--c2:#5C3F08}
+.lb.cyan  {--c1:#2AB8FF;--c2:#0A3E5C}
+.lb.pink  {--c1:#E040A0;--c2:#5C0A40}
+.lb.green {--c1:#3FCB7C;--c2:#0A4020}
+.lb.purple{--c1:#B946FF;--c2:#3D0A5C}
+.lb.yellow{--c1:#FFE695;--c2:#7A6008}
+
 /* Floating numbers */
 .floatNum{position:absolute;pointer-events:none;font-family:'Cinzel',serif;font-weight:800;font-size:26px;
   text-shadow:0 0 12px var(--fnGlow);color:var(--fnCol);animation:floatUp 1.5s ease-out forwards;z-index:8}
 @keyframes floatUp{0%{transform:translate(-50%,0) scale(.4);opacity:0}15%{transform:translate(-50%,-12px) scale(1.25);opacity:1}100%{transform:translate(-50%,-110px) scale(.9);opacity:0}}
 
-/* Multiplier badges columns — recent wins shown as orange ball badges */
-.multCol{position:absolute;top:200px;display:flex;flex-direction:column;gap:6px;z-index:3;pointer-events:none}
-.multCol.left{left:50%;transform:translateX(-300px)}
-.multCol.right{left:50%;transform:translateX(228px)}
-.multBadge{display:flex;align-items:center;gap:6px;padding:2px 8px 2px 2px;
-  background:linear-gradient(90deg, rgba(15,11,7,.85), rgba(5,4,4,.6));
-  border:1px solid rgba(212,175,55,.5);
-  clip-path:polygon(12px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  height:23px;animation:badgeIn .4s cubic-bezier(.2,1.2,.3,1.1)}
-@keyframes badgeIn{from{opacity:0;transform:translateX(-10px) scale(.5)}to{opacity:1;transform:translateX(0) scale(1)}}
-.multBadge .b{width:18px;height:18px;background:url('assets/svg/mult-ball.svg') center/contain no-repeat;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(255,167,71,.6))}
-.multBadge .t{font-family:'Inter';font-size:11px;font-weight:700;color:#fff;letter-spacing:.5px;text-shadow:0 0 4px rgba(0,0,0,.6)}
-.multBadge.big{border-color:#FFB347;box-shadow:0 0 8px rgba(255,107,26,.4)}
-.multBadge.big .t{color:#FFB347;text-shadow:0 0 6px rgba(255,107,26,.7)}
-.multBadge.mega{border-color:#FF2D2D;box-shadow:0 0 12px rgba(255,45,45,.5)}
-.multBadge.mega .t{color:#FF8C42;text-shadow:0 0 8px rgba(255,45,45,.8)}
-.multBadge.loss{opacity:.5}
-.multBadge.loss .t{color:#8A7A5E}
+/* (Multiplier badge columns removed — replaced by static top legend) */
 
 /* === CONTROLS — using SVG backgrounds === */
 .panelWrap{position:absolute}
@@ -138,8 +141,8 @@ body{position:fixed;inset:0}
 .ctrl .arrow:active{transform:scale(.92)}
 .ctrl .val{font-family:'Inter';font-size:16px;font-weight:700;color:#FFE695;text-shadow:0 0 8px rgba(255,224,138,.5)}
 
-.linesWrap{position:absolute;right:60px;top:200px;width:157px}
-.riskWrap{position:absolute;right:60px;top:300px;width:157px}
+.linesWrap{position:absolute;right:60px;top:230px;width:157px}
+.riskWrap{position:absolute;right:60px;top:330px;width:157px}
 .riskIcons{height:42px;position:relative;display:flex;align-items:center;justify-content:space-around;padding:0 12px;gap:6px;
   background:url('assets/svg/btn-bg.svg') no-repeat;background-size:100% 100%;
   filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
@@ -148,11 +151,16 @@ body{position:fixed;inset:0}
   opacity:.45;filter:saturate(.5)}
 .riskIcons .ri:hover{opacity:.9;filter:saturate(1);transform:scale(1.05)}
 .riskIcons .ri.act{opacity:1;filter:drop-shadow(0 0 10px #FFE695);transform:scale(1.12)}
-.riskIcons .ri[data-risk="LOW"]{background-image:url('assets/svg/risk-multi.svg')}
-.riskIcons .ri[data-risk="MEDIUM"]{background-image:url('assets/svg/risk-vortex.svg')}
+/* All 3 risk levels use the flame icon — matches Figma "Multiplier
+   Active" where HIGH lights up brightest. Same icon, different glow. */
+.riskIcons .ri[data-risk="LOW"]{background-image:url('assets/svg/risk-flame.svg');opacity:.35}
+.riskIcons .ri[data-risk="MEDIUM"]{background-image:url('assets/svg/risk-flame.svg');opacity:.55}
 .riskIcons .ri[data-risk="HIGH"]{background-image:url('assets/svg/risk-flame.svg')}
+.riskIcons .ri[data-risk="LOW"].act{opacity:1;filter:drop-shadow(0 0 10px #3FCB7C);transform:scale(1.12)}
+.riskIcons .ri[data-risk="MEDIUM"].act{opacity:1;filter:drop-shadow(0 0 10px #FFE695);transform:scale(1.12)}
+.riskIcons .ri[data-risk="HIGH"].act{opacity:1;filter:drop-shadow(0 0 12px #FF6B1A);transform:scale(1.18)}
 
-.buyFeat{position:absolute;left:calc(50% - 240px);bottom:80px;width:131px}
+.buyFeat{position:absolute;left:calc(50% - 215px);bottom:80px;width:131px}
 .buyFeatIcons{height:42px;position:relative;display:flex;align-items:center;justify-content:space-around;padding:0 10px;cursor:pointer;
   background:url('assets/svg/btn-bg.svg') no-repeat;background-size:100% 100%;
   filter:drop-shadow(0 0 6px rgba(212,175,55,.25));transition:.2s}
@@ -163,9 +171,9 @@ body{position:fixed;inset:0}
 .buyFeatIcons .fi.blue.act{color:#9BC8FF;text-shadow:0 0 10px #4A9EFF}
 .buyFeatIcons .fi.wild.act{color:#FFB347;text-shadow:0 0 10px #FF6B1A}
 
-.ballsAmt{position:absolute;left:calc(50% - 240px);bottom:184px;width:131px}
-.betAmt{position:absolute;left:calc(50% + 110px);bottom:80px;width:157px}
-.autoCtrl{position:absolute;left:calc(50% + 110px);bottom:184px;width:131px}
+.ballsAmt{position:absolute;left:calc(50% - 215px);bottom:184px;width:131px}
+.betAmt{position:absolute;left:calc(50% + 85px);bottom:80px;width:157px}
+.autoCtrl{position:absolute;left:calc(50% + 85px);bottom:184px;width:131px}
 
 /* PLAY — Figma SVG button with gold ring + striped pattern */
 .playWrap{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);width:188px;height:188px;cursor:pointer;z-index:10;
@@ -294,10 +302,6 @@ body{position:fixed;inset:0}
 <div class="triLine left"></div>
 <div class="triLine right"></div>
 
-<!-- Multiplier badge columns (recent landings) -->
-<div class="multCol left" id="multColLeft"></div>
-<div class="multCol right" id="multColRight"></div>
-
 <!-- Dispenser (Figma SVGs: ring + balls cluster) -->
 <div class="dispenser">
   <div class="glow"></div>
@@ -306,9 +310,23 @@ body{position:fixed;inset:0}
   <div class="slot"></div>
 </div>
 
+<!-- Top legend — 6 multiplier-ball colors in 2 chamfered banners -->
+<div class="topLegend">
+  <div class="legendBanner">
+    <div class="lb orange"><div class="dot"></div>1x</div>
+    <div class="lb cyan"><div class="dot"></div>2x</div>
+    <div class="lb pink"><div class="dot"></div>4x</div>
+  </div>
+  <div class="legendBanner">
+    <div class="lb green"><div class="dot"></div>6x</div>
+    <div class="lb purple"><div class="dot"></div>8x</div>
+    <div class="lb yellow"><div class="dot"></div>10x</div>
+  </div>
+</div>
+
 <!-- Board canvas -->
 <div id="boardWrap">
-  <canvas id="board" width="560" height="700"></canvas>
+  <canvas id="board" width="560" height="600"></canvas>
   <!-- Inline win bar (slot row chamfered SVG) -->
   <div class="winBar" id="winBar">
     <div class="lbl" id="winLbl">PLINKO GONE WILD</div>
@@ -465,7 +483,7 @@ const TBL={
   HIGH:{8:[29,4,1.5,.3,.2,.3,1.5,4,29], 10:[76,10,3,.9,.3,.2,.3,.9,3,10,76], 12:[128,24,5,2,.7,.3,.2,.3,.7,2,5,24,128], 14:[256,43,7,3,1,.5,.2,.2,.2,.5,1,3,7,43,256], 16:[1000,130,26,9,4,1.4,.5,.3,.2,.3,.5,1.4,4,9,26,130,1000]}
 };
 
-const board={c:$('#board'), ctx:null, W:560, H:700, pegs:[], slots:[], cx:280, topY:130, sp:34};
+const board={c:$('#board'), ctx:null, W:560, H:600, pegs:[], slots:[], cx:280, topY:60, sp:34};
 function setupCanvas(c){
   const dpr=Math.min(window.devicePixelRatio||1,2.5);
   const w=c.width,h=c.height;
@@ -931,28 +949,11 @@ function updateStats(){
     r.innerHTML=`<div>${h.time}</div><div>${h.bet.toFixed(2)} ETH</div><div>${h.pay.toFixed(2)} ETH</div><div class="pf" style="color:${ncol}">${net>=0?'+':''}${net.toFixed(2)} ETH</div>`;
     box.appendChild(r);
   }
-  updateMultBadges();
 }
 
-function updateMultBadges(){
-  // Build orange-ball badges on left + right sides showing recent multipliers
-  const colL=$('#multColLeft'), colR=$('#multColRight');
-  colL.innerHTML=''; colR.innerHTML='';
-  const recent = state.history.slice(0,12);
-  // Split: alternate badges between L and R (newest on top of each)
-  for (let i=0;i<recent.length;i++){
-    const h=recent[i];
-    const m=h.m;
-    let cls='';
-    if (m>=50) cls='mega';
-    else if (m>=10) cls='big';
-    else if (m<1) cls='loss';
-    const label = m>=10 ? Math.round(m)+'x' : m.toFixed(1).replace('.0','')+'x';
-    const el=document.createElement('div');
-    el.className='multBadge '+cls;
-    el.innerHTML=`<div class="b"></div><div class="t">${label}</div>`;
-    (i%2===0 ? colL : colR).appendChild(el);
-  }
+// dead — kept for safety
+function _noop(){
+  // legend is now a static top bar; no dynamic side badges
 }
 
 $('#playBtn').addEventListener('click', ()=>{
