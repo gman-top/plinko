@@ -780,31 +780,51 @@ body { position: fixed; inset: 0; }
 /* ----- Phase 2: How-to-play tutorial (4-slide carousel) ----- */
 .howto {
   position: relative; z-index: 2;
-  display: flex; flex-direction: column; align-items: center;
-  gap: 10px;
-  padding: 28px 24px 22px;
-  max-width: 540px;
-  width: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  align-items: center; justify-items: center;
+  width: min(900px, 92vw);
+  max-width: 92vw;
+  height: min(720px, 92vh); height: min(720px, 92dvh);
+  padding: 28px 32px 24px;
+  gap: 18px;
   animation: introPop .55s cubic-bezier(.2,1.2,.3,1.1);
 }
 
+/* HEADER — slide count, logo, max-win badge on a horizontal row */
+.howtoHeader {
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  width: 100%;
+}
+.slideCount {
+  position: absolute;
+  top: 6px; right: 6px;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 12px; letter-spacing: 3px;
+  color: var(--goldHi); opacity: 0.7;
+  display: flex; gap: 3px; align-items: baseline;
+}
+.slideCountSep { color: var(--gold); opacity: 0.5; margin: 0 2px; }
+
 .howtoLogoWrap {
-  width: 200px;
-  filter: drop-shadow(0 0 20px rgba(212,175,55,.45));
-  margin-bottom: -4px;
+  width: clamp(180px, 18vw, 260px);
+  filter: drop-shadow(0 0 24px rgba(212,175,55,.5));
 }
 .howtoLogo { width: 100%; height: auto; display: block; }
 
 .maxWinBadge {
   display: flex; flex-direction: column; align-items: center;
   gap: 1px;
-  padding: 5px 18px 8px;
+  padding: 6px 22px 9px;
   position: relative;
 }
 .maxWinBadge::before, .maxWinBadge::after {
   content: '';
   position: absolute; left: 50%;
-  width: 70px; height: 1px;
+  width: 80px; height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
   transform: translateX(-50%);
 }
@@ -812,27 +832,44 @@ body { position: fixed; inset: 0; }
 .maxWinBadge::after  { bottom: 0; }
 .maxWinTop {
   font-family: 'Audiowide', sans-serif;
-  font-size: 9px;
-  letter-spacing: 4px;
+  font-size: 10px;
+  letter-spacing: 5px;
   color: var(--goldHi);
   text-shadow: 0 0 8px rgba(255,224,138,.4);
 }
 .maxWinBig {
   font-family: 'Audiowide', sans-serif;
-  font-size: 26px; letter-spacing: 2px;
+  font-size: clamp(26px, 3.4vw, 38px); letter-spacing: 2px;
   background: linear-gradient(180deg, var(--goldLite) 0%, var(--goldHi) 45%, var(--gold) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 12px rgba(212,175,55,.5));
+  filter: drop-shadow(0 0 14px rgba(212,175,55,.55));
   line-height: 1;
 }
-.maxWinBig span { font-size: 18px; margin-left: 2px; }
+.maxWinBig span { font-size: 0.7em; margin-left: 2px; }
 
+/* STAGE — fills the available middle row */
 .howtoStage {
   width: 100%;
-  height: 190px;
+  height: 100%;
+  min-height: 200px;
   display: flex; align-items: center; justify-content: center;
-  margin: 0;
+  padding: 8px 0;
+}
+
+/* TEXT BLOCK */
+.howtoText {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 560px;
+}
+
+/* FOOTER — dots, START, aigostudios */
+.howtoFooter {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px;
+  width: 100%;
 }
 .slide {
   width: 100%; height: 100%;
@@ -844,19 +881,102 @@ body { position: fixed; inset: 0; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Slide 0: HOW TO PLAY — three-step diagram */
+.slideSteps {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.step {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px;
+  min-width: 130px;
+}
+.stepHead {
+  position: relative;
+  width: clamp(70px, 8vw, 96px);
+  height: clamp(70px, 8vw, 96px);
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 35% 30%, rgba(212,175,55,0.18), rgba(28,20,11,0.55));
+  border: 1px solid rgba(212,175,55,0.55);
+  border-radius: 50%;
+  filter: drop-shadow(0 0 14px rgba(212,175,55,.35));
+}
+.stepN {
+  position: absolute;
+  top: -10px; right: -8px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--goldHi), var(--gold));
+  color: #1a0f03;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 10px rgba(212,175,55,0.6);
+}
+.stepArt { display: flex; align-items: center; justify-content: center; }
+.stepCoin {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--goldLite) 0%, var(--gold) 45%, var(--goldDeep) 100%);
+  box-shadow: 0 0 10px rgba(255,224,138,0.55), inset 0 0 6px rgba(0,0,0,0.3);
+}
+.stepDials { display: flex; gap: 5px; }
+.stepDial {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.stepDial.g { background: var(--green); color: var(--green); }
+.stepDial.a { background: var(--goldHi); color: var(--goldHi); }
+.stepDial.r { background: var(--wildHi); color: var(--wildHi); }
+.stepPlay {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 12px; letter-spacing: 2px;
+  color: var(--goldHi);
+  padding: 6px 12px;
+  background: linear-gradient(180deg, rgba(212,175,55,0.25), rgba(212,175,55,0.05));
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 8px);
+}
+.stepTitle {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 11px; letter-spacing: 2.5px;
+  color: var(--goldHi);
+  text-shadow: 0 0 8px rgba(255,224,138,.3);
+}
+.stepHint {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  color: var(--textDim);
+  letter-spacing: 0.5px;
+  text-align: center;
+  max-width: 130px;
+  line-height: 1.4;
+}
+.stepDiv {
+  width: 36px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  align-self: center;
+  margin-top: -28px;
+}
+
 /* Slide 1: three triangle feature badges */
 .slideFeatures {
   display: flex; align-items: center; justify-content: center;
-  gap: 14px;
+  gap: clamp(10px, 1.8vw, 22px);
 }
 .featBadge {
   position: relative;
-  width: 92px; height: 90px;
+  width: clamp(86px, 10vw, 130px);
+  height: clamp(82px, 9.5vw, 124px);
   display: flex; align-items: center; justify-content: center;
   filter: drop-shadow(0 0 12px rgba(212,175,55,.35));
 }
 .featBadge.big {
-  width: 130px; height: 124px;
+  width: clamp(120px, 14vw, 180px);
+  height: clamp(114px, 13.4vw, 170px);
   filter: drop-shadow(0 0 18px rgba(212,175,55,.6));
 }
 .featTri {
@@ -884,48 +1004,81 @@ body { position: fixed; inset: 0; }
 
 /* Slides 2-4: mini-board SVGs */
 .slideMini { width: 100%; height: 100%; padding: 4px 0; }
-.miniBoard { width: 100%; height: 100%; max-width: 340px; margin: 0 auto; display: block; }
+.miniBoard {
+  width: 100%; height: 100%;
+  max-width: clamp(320px, 38vw, 480px);
+  max-height: 100%;
+  margin: 0 auto; display: block;
+}
 
 /* Title + description block */
 .howtoTitle {
   font-family: 'Audiowide', sans-serif;
-  font-size: 16px; letter-spacing: 4px;
+  font-size: clamp(18px, 2.2vw, 24px); letter-spacing: 4px;
   color: var(--goldHi);
   text-align: center;
-  text-shadow: 0 0 12px rgba(255,224,138,.4);
-  margin-top: 2px;
+  text-shadow: 0 0 14px rgba(255,224,138,.45);
+  line-height: 1.2;
 }
 .howtoDesc {
   font-family: 'Inter', sans-serif;
-  font-size: 12.5px; line-height: 1.5;
+  font-size: clamp(12px, 1.2vw, 14px); line-height: 1.55;
   color: var(--cream);
   opacity: 0.85;
   text-align: center;
-  max-width: 420px;
+  max-width: 540px;
   min-height: 36px;
 }
 
-/* Nav: arrows + dot indicator — combined row with the START button
-   feels cleaner than three separate rows */
-.howtoNav {
-  display: flex; align-items: center; justify-content: center;
-  gap: 22px;
-  margin-top: 2px;
-}
+/* Edge-anchored carousel arrows — big touch targets at the
+   screen sides, like a premium card carousel */
 .introArrow {
-  width: 28px; height: 28px;
-  background: none; border: none; cursor: pointer;
-  background-size: contain; background-repeat: no-repeat; background-position: center;
-  filter: drop-shadow(0 0 6px rgba(212,175,55,.45));
-  transition: transform .12s ease;
-  flex-shrink: 0;
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  width: clamp(40px, 4vw, 56px);
+  height: clamp(40px, 4vw, 56px);
+  background: rgba(28, 20, 11, 0.6);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  filter: drop-shadow(0 0 12px rgba(212,175,55,.35));
+  transition: transform .15s ease, background .2s, border-color .2s;
+  z-index: 3;
+  display: flex; align-items: center; justify-content: center;
 }
-.introArrow.l { background-image: url('/assets/svg/arrow-left.svg'); }
-.introArrow.r { background-image: url('/assets/svg/arrow-right.svg'); }
-.introArrow:hover  { transform: scale(1.15); }
-.introArrow:active { transform: scale(0.9); }
+.introArrow::before {
+  content: '';
+  width: 50%; height: 50%;
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+}
+.introArrow.l { left: clamp(12px, 3vw, 48px); }
+.introArrow.r { right: clamp(12px, 3vw, 48px); }
+.introArrow.l::before { background-image: url('/assets/svg/arrow-left.svg'); }
+.introArrow.r::before { background-image: url('/assets/svg/arrow-right.svg'); }
+.introArrow:hover  { transform: translateY(-50%) scale(1.08); background: rgba(212,175,55,0.18); border-color: var(--goldHi); }
+.introArrow:active { transform: translateY(-50%) scale(0.94); }
+
+/* Close button (top right) — used when re-opened from INFO */
+.introClose {
+  position: absolute;
+  top: clamp(14px, 2vw, 28px);
+  right: clamp(14px, 2vw, 28px);
+  width: 38px; height: 38px;
+  background: rgba(28, 20, 11, 0.6);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 50%;
+  color: var(--goldHi);
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  z-index: 3;
+  transition: transform .15s ease, background .2s, border-color .2s;
+}
+.introClose:hover  { transform: scale(1.08); background: rgba(212,175,55,0.18); border-color: var(--goldHi); }
+.introClose:active { transform: scale(0.94); }
+
 .introDots {
-  display: flex; gap: 8px;
+  display: flex; gap: 10px;
 }
 .introDot {
   width: 6px; height: 6px;
@@ -980,34 +1133,31 @@ body { position: fixed; inset: 0; }
   box-shadow: 0 0 6px var(--gold);
 }
 
-/* Tutorial responsive — full-screen edge-to-edge on mobile */
+/* Tutorial responsive — full-viewport on mobile, arrows compact */
 @media (max-width: 768px) {
-  .intro {
-    align-items: stretch !important;
-    justify-content: stretch !important;
-  }
   .howto {
     width: 100vw !important;
     max-width: 100vw !important;
-    min-height: 100vh; min-height: 100dvh;
+    height: 100vh; height: 100dvh;
     gap: 14px;
-    padding: 28px 18px 22px;
-    justify-content: center;
+    padding: 64px 50px 22px;
     box-sizing: border-box;
+    grid-template-rows: auto 1fr auto auto;
   }
-  .howtoLogoWrap { width: clamp(180px, 60vw, 260px); }
-  .maxWinBig { font-size: 28px; }
-  .maxWinBig span { font-size: 20px; }
-  .maxWinTop { font-size: 9px; letter-spacing: 4px; }
-  .howtoStage { height: 200px; }
-  .slideFeatures { gap: 10px; }
-  .featBadge      { width: 80px;  height: 80px; }
-  .featBadge.big  { width: 112px; height: 108px; }
-  .featLbl { font-size: 8px; letter-spacing: 1.5px; bottom: 6px; }
-  .howtoTitle { font-size: 15px; letter-spacing: 3px; }
+  .slideCount { top: -42px; right: 10px; font-size: 11px; }
+  .howtoLogoWrap { width: clamp(160px, 56vw, 240px); }
+  .howtoStage { min-height: 160px; }
+  .slideSteps { gap: 8px; }
+  .stepDiv { display: none; }
+  .step { min-width: 90px; }
+  .stepHint { font-size: 9px; max-width: 96px; }
+  .miniBoard { max-width: 88vw; }
   .howtoDesc  { font-size: 12px; padding: 0 6px; }
   .introStart { padding: 14px 40px; font-size: 15px; letter-spacing: 4px; }
-  .introArrow { width: 26px; height: 26px; }
+  .introArrow { width: 38px; height: 38px; }
+  .introArrow.l { left: 8px; }
+  .introArrow.r { right: 8px; }
+  .introClose { width: 34px; height: 34px; top: 14px; right: 14px; }
   .aigoName { font-size: 26px; letter-spacing: 6px; }
   .loadBar { width: 220px; }
   .loadLogo { width: clamp(180px, 60vw, 260px); }

@@ -9,19 +9,39 @@ import * as Sounds from '../audio/sounds.js';
 const B = import.meta.env.BASE_URL;
 const ASSET = (p) => `${B}${p.replace(/^\//, '')}`;
 
-/**
- * Pre-game overlay with two acts:
- *   ACT 1 — loading: AIGO Studios mark + progress bar (~1.4s)
- *   ACT 2 — tutorial: 4-slide carousel mirroring the Figma tutorial
- *           (PLINKO GONE WILD header + MAX WIN 10,000X + per-slide
- *           diagram drawn from our own SVG assets + arrows / dots /
- *           START button). START sets phase = 'done' and persists.
- */
+const SLIDES = [
+  {
+    id: 'play',
+    title: 'HOW TO PLAY',
+    desc: 'Pick LINES (8–16), RISK LEVEL, and your BET. Hit PLAY to drop a cosmic comet through the star field — wherever it lands, that slot’s multiplier × your bet is your payout.',
+  },
+  {
+    id: 'features',
+    title: 'THREE ACTIVATING SPIN FEATURES',
+    desc: 'Toggle one — or all three — of the feature stars below the board. Each one adds a new way the field can pay out bigger. They stack.',
+  },
+  {
+    id: 'mult',
+    title: 'MULTIPLIERS',
+    desc: 'Adds up to 3 multiplier stars to the field. Passing through them boosts the ball’s final multiplier — they compound on a single drop.',
+  },
+  {
+    id: 'respin',
+    title: 'RESPIN CHANCE',
+    desc: 'Adds up to 4 vortex slots. Landing in one grants you an extra free ball — without paying the bet again.',
+  },
+  {
+    id: 'multball',
+    title: 'MULTIPLIER BALL CHANCE',
+    desc: 'A chance to release a ball with a higher starting multiplier. Six tiers from gold to wild — the rarer the colour, the higher the boost.',
+  },
+];
+
 export default function IntroScreen() {
   const phase = useGame(s => s.introPhase);
   const setPhase = useGame(s => s.setIntroPhase);
   const [progress, setProgress] = useState(0);
-  const [slide, setSlide] = useState(0); // 0..3
+  const [slide, setSlide] = useState(0);
 
   useEffect(() => {
     if (phase !== 'loading') return;
@@ -38,16 +58,23 @@ export default function IntroScreen() {
     return () => cancelAnimationFrame(raf);
   }, [phase, setPhase]);
 
+  // Reset slide to first whenever the howto phase re-opens
+  useEffect(() => {
+    if (phase === 'howto') setSlide(0);
+  }, [phase]);
+
   if (phase === 'done') return null;
 
   const start = () => {
     Sounds.playClick();
-    // Resume the audio context on this user gesture
     Sounds.setEnabled(useGame.getState().soundOn);
     setPhase('done');
   };
-  const prev = () => { Sounds.playClick(); setSlide(s => (s + 3) % 4); };
-  const next = () => { Sounds.playClick(); setSlide(s => (s + 1) % 4); };
+  const N = SLIDES.length;
+  const prev = () => { Sounds.playClick(); setSlide(s => (s + N - 1) % N); };
+  const next = () => { Sounds.playClick(); setSlide(s => (s + 1) % N); };
+
+  const cur = SLIDES[slide];
 
   return createPortal((
     <div className={`intro ${phase}`}>
@@ -73,91 +100,138 @@ export default function IntroScreen() {
       )}
 
       {phase === 'howto' && (
-        <div className="howto">
-          <div className="howtoLogoWrap">
-            <img className="howtoLogo" src={ASSET('assets/svg/logo-plinko.svg')} alt="PLINKO GONE WILD" />
-          </div>
-          <div className="maxWinBadge">
-            <div className="maxWinTop">MAX WIN</div>
-            <div className="maxWinBig">10,000<span>X</span></div>
-          </div>
+        <>
+          {/* Edge-positioned carousel arrows */}
+          <button className="introArrow l" onClick={prev} aria-label="Previous" />
+          <button className="introArrow r" onClick={next} aria-label="Next" />
+          {/* Close button — players who re-open from INFO need a way out */}
+          <button className="introClose" onClick={start} aria-label="Close">✕</button>
 
-          <div className="howtoStage">
-            {slide === 0 && <SlideFeatures />}
-            {slide === 1 && <SlideMultipliers />}
-            {slide === 2 && <SlideRespin />}
-            {slide === 3 && <SlideMultBall />}
-          </div>
-
-          <div className="howtoTitle">
-            {['THREE ACTIVATING SPIN FEATURES',
-              'MULTIPLIERS',
-              'RESPIN CHANCE',
-              'MULTIPLIER BALL CHANCE'][slide]}
-          </div>
-          <div className="howtoDesc">
-            {[
-              'Three feature stars boost your run. Activate one — or all three — to push the field toward bigger payouts.',
-              'Adds up to 3 multiplier stars to the field. Passing through them boosts the ball’s final multiplier — they compound on a single drop.',
-              'Adds up to 4 vortex slots. Landing in one grants you an extra free ball — without paying the bet again.',
-              'A chance to release a ball with a higher starting multiplier. Six tiers from gold to wild — the rarer the colour, the higher the boost.',
-            ][slide]}
-          </div>
-
-          <div className="howtoNav">
-            <button className="introArrow l" onClick={prev} aria-label="Previous" />
-            <div className="introDots">
-              {[0,1,2,3].map(i => (
-                <span key={i} className={`introDot${i === slide ? ' on' : ''}`} onClick={() => { Sounds.playClick(); setSlide(i); }} />
-              ))}
+          <div className="howto">
+            <div className="howtoHeader">
+              <div className="slideCount">
+                {String(slide + 1).padStart(2, '0')}
+                <span className="slideCountSep">/</span>
+                {String(N).padStart(2, '0')}
+              </div>
+              <div className="howtoLogoWrap">
+                <img className="howtoLogo" src={ASSET('assets/svg/logo-plinko.svg')} alt="PLINKO GONE WILD" />
+              </div>
+              <div className="maxWinBadge">
+                <div className="maxWinTop">MAX WIN</div>
+                <div className="maxWinBig">10,000<span>X</span></div>
+              </div>
             </div>
-            <button className="introArrow r" onClick={next} aria-label="Next" />
-          </div>
 
-          <button className="introStart" onClick={start}>
-            <span>START</span>
-          </button>
+            <div className="howtoStage" key={cur.id}>
+              {cur.id === 'play'     && <SlideHowToPlay />}
+              {cur.id === 'features' && <SlideFeatures />}
+              {cur.id === 'mult'     && <SlideMultipliers />}
+              {cur.id === 'respin'   && <SlideRespin />}
+              {cur.id === 'multball' && <SlideMultBall />}
+            </div>
 
-          <div className="introFoot">
-            <span className="dot" /> AIGOSTUDIOS.COM
+            <div className="howtoText">
+              <div className="howtoTitle">{cur.title}</div>
+              <div className="howtoDesc">{cur.desc}</div>
+            </div>
+
+            <div className="howtoFooter">
+              <div className="introDots">
+                {SLIDES.map((_, i) => (
+                  <span key={i}
+                    className={`introDot${i === slide ? ' on' : ''}`}
+                    onClick={() => { Sounds.playClick(); setSlide(i); }} />
+                ))}
+              </div>
+              <button className="introStart" onClick={start}>
+                <span>START PLAYING</span>
+              </button>
+              <div className="introFoot">
+                <span className="dot" /> AIGOSTUDIOS.COM
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   ), document.body);
 }
 
-// === Slide 1 — Three triangle badges (features overview) =============
+// =============================================================
+// SLIDE 0 — HOW TO PLAY (basics)
+// Three-step diagram: BET → RISK / LINES → PLAY
+// =============================================================
+function SlideHowToPlay() {
+  return (
+    <div className="slide slideSteps">
+      <Step n="1" title="SET BET" hint="Choose how much to wager">
+        <div className="stepCoin" />
+      </Step>
+      <StepDivider />
+      <Step n="2" title="PICK RISK + LINES" hint="LOW · MED · HIGH · 8-16">
+        <div className="stepDials">
+          <span className="stepDial g" />
+          <span className="stepDial a" />
+          <span className="stepDial r" />
+        </div>
+      </Step>
+      <StepDivider />
+      <Step n="3" title="PRESS PLAY" hint="Drop the comet">
+        <div className="stepPlay">PLAY</div>
+      </Step>
+    </div>
+  );
+}
+function Step({ n, title, hint, children }) {
+  return (
+    <div className="step">
+      <div className="stepHead">
+        <div className="stepN">{n}</div>
+        <div className="stepArt">{children}</div>
+      </div>
+      <div className="stepTitle">{title}</div>
+      <div className="stepHint">{hint}</div>
+    </div>
+  );
+}
+function StepDivider() {
+  return <div className="stepDiv" />;
+}
+
+// =============================================================
+// SLIDE 1 — Three triangle feature badges
+// =============================================================
 function SlideFeatures() {
   return (
     <div className="slide slideFeatures">
-      <FeatureBadge label="MULTIPLIERS" small>
+      <FeatureBadge label="MULTIPLIERS">
         <img src={ASSET('assets/svg/risk-multi.svg')} alt="" />
       </FeatureBadge>
       <FeatureBadge big>
         <img src={ASSET('assets/svg/risk-vortex.svg')} alt="" />
       </FeatureBadge>
-      <FeatureBadge label="BALL CHANCE" small>
+      <FeatureBadge label="BALL CHANCE">
         <img src={ASSET('assets/svg/risk-flame.svg')} alt="" />
       </FeatureBadge>
     </div>
   );
 }
-function FeatureBadge({ children, label, big, small }) {
+function FeatureBadge({ children, label, big }) {
   return (
-    <div className={`featBadge${big ? ' big' : ''}${small ? ' small' : ''}`}>
+    <div className={`featBadge${big ? ' big' : ''}`}>
       <svg className="featTri" viewBox="0 0 120 110" preserveAspectRatio="none">
-        <polygon points="60,4 116,104 4,104"
-          fill={big ? 'rgba(212,175,55,0.18)' : 'none'}
-          stroke="url(#featTriG)"
-          strokeWidth="2"
-          strokeLinejoin="round" />
         <defs>
           <linearGradient id="featTriG" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#FFF6D8" />
             <stop offset="1" stopColor="#D4AF37" />
           </linearGradient>
         </defs>
+        <polygon points="60,4 116,104 4,104"
+          fill={big ? 'rgba(212,175,55,0.18)' : 'none'}
+          stroke="url(#featTriG)"
+          strokeWidth="2"
+          strokeLinejoin="round" />
       </svg>
       <div className="featIcon">{children}</div>
       {label && <div className="featLbl">{label}</div>}
@@ -165,22 +239,17 @@ function FeatureBadge({ children, label, big, small }) {
   );
 }
 
-// === Slide 2 — Plinko triangle with multiplier stars highlighted =====
+// =============================================================
+// SLIDE 2 — Plinko triangle with multiplier stars highlighted
+// =============================================================
 function SlideMultipliers() {
-  // Generate a plinko triangle (rows of pegs) + 3 highlighted multiplier
-  // stars sitting on real peg positions
   const rows = 8;
   const pegs = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c <= r; c++) {
-      pegs.push({
-        x: 50 + (c - r / 2) * 6.2,
-        y: 12 + r * 7.5,
-        row: r, col: c,
-      });
+      pegs.push({ x: 50 + (c - r / 2) * 6.2, y: 12 + r * 7.5, row: r, col: c });
     }
   }
-  // Pick three pegs to be multiplier stars
   const mults = [
     { row: 3, col: 1, label: '2x', color: '#FFE695' },
     { row: 5, col: 2, label: '3x', color: '#FF8C42' },
@@ -196,9 +265,9 @@ function SlideMultipliers() {
           if (m) {
             return (
               <g key={i}>
-                <circle cx={p.x} cy={p.y} r="2.8" fill={m.color} opacity="0.35" />
-                <circle cx={p.x} cy={p.y} r="1.8" fill={m.color} />
-                <text x={p.x} y={p.y + 5.2} fill={m.color} fontSize="2.4"
+                <circle cx={p.x} cy={p.y} r="3.2" fill={m.color} opacity="0.3" />
+                <circle cx={p.x} cy={p.y} r="2.0" fill={m.color} />
+                <text x={p.x} y={p.y + 5.6} fill={m.color} fontSize="2.4"
                   textAnchor="middle" fontFamily="Audiowide, sans-serif">{m.label}</text>
               </g>
             );
@@ -210,7 +279,9 @@ function SlideMultipliers() {
   );
 }
 
-// === Slide 3 — Dispenser → vortex slot (respin chance) ==============
+// =============================================================
+// SLIDE 3 — Dispenser + curved trajectory → vortex slot
+// =============================================================
 function SlideRespin() {
   const rows = 8;
   const pegs = [];
@@ -219,7 +290,6 @@ function SlideRespin() {
       pegs.push({ x: 50 + (c - r / 2) * 6.2, y: 22 + r * 6.4 });
     }
   }
-  // Slot row indicators (one is a vortex)
   const slots = [];
   for (let i = 0; i < 9; i++) {
     slots.push({ x: 50 + (i - 4) * 6.2, y: 75, vortex: i === 6 });
@@ -228,22 +298,15 @@ function SlideRespin() {
   return (
     <div className="slide slideMini">
       <svg viewBox="0 0 100 84" preserveAspectRatio="xMidYMid meet" className="miniBoard">
-        {/* Dispenser at apex */}
         <circle cx="50" cy="10" r="6.5" fill="rgba(212,175,55,0.18)" stroke="#D4AF37" strokeWidth="0.6" />
         <circle cx="50" cy="10" r="4" fill="#1A0F03" stroke="#FFE695" strokeWidth="0.3" />
         {[0,1,2,3,4].map(i => (
           <circle key={i} cx={48 + (i%3)*1.5} cy={8.5 + Math.floor(i/3)*1.5} r="0.9"
             fill={['#FFB347','#FFE695','#FF6B1A','#B946FF','#4A9EFF'][i]} />
         ))}
-
-        {/* Falling-ball curve hint */}
         <path d="M50 17 Q 35 38, 50 60 T 71 73" fill="none"
           stroke="#FFE695" strokeWidth="0.5" strokeDasharray="1.5,1.2" opacity="0.7" />
-
-        {/* Pegs */}
         {pegs.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="0.9" fill="#FFE695" opacity="0.5" />)}
-
-        {/* Slot row */}
         {slots.map((s, i) => (
           s.vortex ? (
             <g key={i}>
@@ -263,7 +326,9 @@ function SlideRespin() {
   );
 }
 
-// === Slide 4 — Multiplier ball chance (coloured balls badge) ========
+// =============================================================
+// SLIDE 4 — Multiplier-ball ribbon + coloured balls on pegs
+// =============================================================
 function SlideMultBall() {
   const rows = 7;
   const pegs = [];
@@ -272,14 +337,12 @@ function SlideMultBall() {
       pegs.push({ x: 50 + (c - r / 2) * 7, y: 22 + r * 7 });
     }
   }
-  // Multiplier ball ribbon: colour-coded
   const ribbon = [
     { c: '#FFE695', label: '1x' },
     { c: '#FF8C42', label: '2x' },
     { c: '#FF2D2D', label: '3x' },
     { c: '#4A9EFF', label: '4x' },
   ];
-  // Coloured balls scattered on pegs
   const colourBalls = [
     { row: 2, col: 1, c: '#FFE695' },
     { row: 3, col: 0, c: '#FF8C42' },
@@ -293,15 +356,12 @@ function SlideMultBall() {
   return (
     <div className="slide slideMini">
       <svg viewBox="0 0 100 84" preserveAspectRatio="xMidYMid meet" className="miniBoard">
-        {/* Dispenser */}
         <circle cx="50" cy="10" r="6.5" fill="rgba(212,175,55,0.18)" stroke="#D4AF37" strokeWidth="0.6" />
         <circle cx="50" cy="10" r="4" fill="#1A0F03" stroke="#FFE695" strokeWidth="0.3" />
         {[0,1,2,3,4].map(i => (
           <circle key={i} cx={48 + (i%3)*1.5} cy={8.5 + Math.floor(i/3)*1.5} r="0.9"
             fill={['#FFB347','#FFE695','#FF6B1A','#B946FF','#4A9EFF'][i]} />
         ))}
-
-        {/* Ribbon: multiplier ball legend (left of board) */}
         <g transform="translate(8 22)">
           {ribbon.map((b, i) => (
             <g key={i} transform={`translate(${i * 6.5} 0)`}>
@@ -311,8 +371,6 @@ function SlideMultBall() {
             </g>
           ))}
         </g>
-
-        {/* Pegs */}
         {pegs.map((p, i) => {
           const cb = colourBalls.find(b =>
             Math.abs(b.row - Math.round((p.y - 22) / 7)) < 0.5 &&
