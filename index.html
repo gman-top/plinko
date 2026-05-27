@@ -15,14 +15,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg0:#050404; --bg1:#0B0805; --bg2:#13100A; --bg3:#1A140C;
-  --gold:#C9962B; --goldHi:#FFE08A; --goldLite:#FFEAA5; --goldDeep:#5C3F08;
+  --gold:#D4AF37; --goldHi:#FFE695; --goldLite:#FFF6D8; --goldDeep:#5C3F08; --orange:#D47B37;
   --cream:#F8E9C6; --textDim:#8A7A5E;
   --wild:#FF6B1A; --wildHi:#FFB347;
   --purple:#B946FF; --purpleHi:#E6A6FF;
   --blue:#4A9EFF; --blueHi:#9BC8FF;
   --jackpot:#FF2D2D; --jackpotHi:#FF8C42;
-  --green:#3FCB7C;
+  --green:#00A991; --greenHi:#3FCB7C;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;background:#050404;overflow:hidden;color:var(--cream);font-family:'Inter',-apple-system,system-ui,sans-serif;user-select:none;-webkit-user-select:none}
@@ -31,155 +30,181 @@ body{position:fixed;inset:0}
 #stage{position:fixed;inset:0;overflow:hidden;
   background:#050404 url('assets/bg.png') center/cover no-repeat fixed}
 #stage::before{content:'';position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 70% 60% at 50% 45%, rgba(0,0,0,0) 0%, rgba(0,0,0,.25) 65%, rgba(0,0,0,.5) 100%)}
-/* Animated gold border lines around viewport */
-#stage::after{content:'';position:absolute;inset:8px;pointer-events:none;border:1px solid transparent;
-  background:linear-gradient(120deg, transparent 0%, rgba(255,224,138,.0) 35%, rgba(255,224,138,.4) 50%, rgba(255,224,138,.0) 65%, transparent 100%) border-box;
-  -webkit-mask:linear-gradient(#000,#000) padding-box exclude, linear-gradient(#000,#000) border-box;
-  mask:linear-gradient(#000,#000) padding-box exclude, linear-gradient(#000,#000) border-box;
-  background-size:300% 100%;animation:goldSweep 6s linear infinite;opacity:.5}
-@keyframes goldSweep{0%{background-position:200% 0}100%{background-position:-100% 0}}
+  background:radial-gradient(ellipse 70% 60% at 50% 45%, transparent 0%, rgba(0,0,0,.25) 65%, rgba(0,0,0,.5) 100%)}
 
 #game{position:absolute;left:50%;top:50%;width:1440px;height:1024px;transform-origin:center center;overflow:visible}
 
 /* === LOGO === */
-.logo{position:absolute;left:60px;top:32px;width:280px;height:130px;
+.logo{position:absolute;left:50px;top:30px;width:300px;height:140px;
   background:url('assets/logo.png') center/contain no-repeat;
-  filter:drop-shadow(0 0 16px rgba(255,224,138,.5)) drop-shadow(0 0 32px rgba(201,150,43,.3))}
+  filter:drop-shadow(0 0 18px rgba(255,224,138,.5))}
 
-/* === Pip / dispenser visual top-right === */
-.topPip{position:absolute;right:60px;top:48px;width:88px;height:72px;background:linear-gradient(180deg, rgba(15,11,7,.85), rgba(5,4,4,.95));
-  border:1px solid rgba(201,150,43,.7);
-  clip-path:polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  display:grid;place-items:center}
-.topPip .grid{display:grid;grid-template-columns:repeat(3,11px);gap:3px}
-.topPip .b{width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFE08A,#5C3F08);box-shadow:0 0 6px #C9962B}
-.topPip .b.r{background:radial-gradient(circle at 35% 30%,#FFB347,#7A0F0F);box-shadow:0 0 7px #FF6B1A}
-
-/* === Stats table === */
-.statsTbl{position:absolute;left:60px;top:180px;width:330px;font-size:11px;color:#FFEAA5}
-.statsTbl .head{display:grid;grid-template-columns:1fr 1.1fr 1fr 1fr;gap:6px;padding:0 6px 10px;letter-spacing:1.5px;font-size:10px;color:#8A7A5E;font-weight:600;border-bottom:1px solid rgba(201,150,43,.3)}
+/* === LEFT stats === */
+.statsTbl{position:absolute;left:60px;top:200px;width:330px;font-size:11px;color:#FFEAA5}
+.statsTbl .head{display:grid;grid-template-columns:1fr 1.1fr 1fr 1fr;gap:6px;padding:0 6px 10px;letter-spacing:1.5px;font-size:10px;color:#8A7A5E;font-weight:600;border-bottom:1px solid rgba(212,175,55,.3)}
 .statsTbl .rowsBox{margin-top:6px;display:flex;flex-direction:column;gap:2px;max-height:380px;overflow:hidden}
 .statsTbl .r{display:grid;grid-template-columns:1fr 1.1fr 1fr 1fr;gap:6px;padding:5px 6px;border-bottom:1px solid rgba(58,43,20,.4);font-size:11px;animation:fadeIn .35s}
 .statsTbl .r .pf{font-weight:600}
 @keyframes fadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
 
 /* === BOARD === */
-#boardWrap{position:absolute;left:50%;top:130px;transform:translateX(-50%);width:600px;height:730px;z-index:5}
-/* Animated gold border around the board */
-#boardWrap::before{content:'';position:absolute;inset:-2px;border:1px solid rgba(201,150,43,.45);pointer-events:none;
-  background:linear-gradient(120deg, transparent 30%, rgba(255,224,138,.5) 50%, transparent 70%) border-box;
-  background-size:300% 100%;animation:goldSweep 4s linear infinite;
-  -webkit-mask:linear-gradient(#000,#000) padding-box exclude, linear-gradient(#000,#000) border-box;
-  mask:linear-gradient(#000,#000) padding-box exclude, linear-gradient(#000,#000) border-box}
-#board{position:absolute;inset:0;display:block;width:100%;height:100%}
+#boardWrap{position:absolute;left:50%;top:140px;transform:translateX(-50%);width:560px;height:700px;z-index:5;pointer-events:auto}
+#board{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:2}
 
-/* Live win counter under board */
-.winHud{position:absolute;left:50%;bottom:-44px;transform:translate(-50%,8px);min-width:200px;text-align:center;opacity:0;pointer-events:none;transition:.25s}
-.winHud.on{opacity:1;transform:translate(-50%,0)}
-.winHud .lab{font-size:10px;letter-spacing:3px;color:#8A7A5E;font-weight:500;margin-bottom:4px}
-.winHud .num{font-family:'Cinzel',serif;font-size:32px;font-weight:800;color:var(--wcCol,#FFE08A);text-shadow:0 0 12px var(--wcGlow,rgba(255,224,138,.7));letter-spacing:2px;line-height:1}
-.winHud .num.flash{animation:winNum .6s cubic-bezier(.2,1.2,.3,1.1)}
-@keyframes winNum{0%{transform:scale(.3) translateY(20px);opacity:0}40%{transform:scale(1.25) translateY(-5px);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}
+/* Triangle diagonal SVGs (LINES on the sides) */
+.triLine{position:absolute;width:227px;height:485px;pointer-events:none;z-index:1;
+  background:url('assets/svg/tri-line.svg') no-repeat;background-size:100% 100%;
+  filter:drop-shadow(0 0 12px rgba(212,123,55,.45))}
+.triLine.left{left:50%;top:135px;transform:translateX(-50%) translateX(-186px)}
+.triLine.right{left:50%;top:135px;transform:translateX(-50%) translateX(186px) scaleX(-1)}
+/* Animated sweep along the lines */
+.triLine::after{content:'';position:absolute;inset:0;
+  background:url('assets/svg/tri-line.svg') no-repeat;background-size:100% 100%;
+  -webkit-mask:linear-gradient(180deg, transparent 30%, #000 50%, transparent 70%);
+  mask:linear-gradient(180deg, transparent 30%, #000 50%, transparent 70%);
+  -webkit-mask-size:100% 60%;mask-size:100% 60%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  filter:drop-shadow(0 0 14px #FFE695);animation:triSweep 3.6s linear infinite}
+@keyframes triSweep{0%{-webkit-mask-position:0 -120%;mask-position:0 -120%}100%{-webkit-mask-position:0 220%;mask-position:0 220%}}
 
-/* Floating "+X" numbers */
-.floatNum{position:absolute;pointer-events:none;font-family:'Cinzel',serif;font-weight:800;font-size:24px;
-  text-shadow:0 0 12px var(--fnGlow);color:var(--fnCol);animation:floatUp 1.4s ease-out forwards;z-index:6}
-@keyframes floatUp{0%{transform:translate(-50%,0) scale(.5);opacity:0}15%{transform:translate(-50%,-10px) scale(1.2);opacity:1}100%{transform:translate(-50%,-90px) scale(.9);opacity:0}}
+/* Dispenser at top of board */
+.dispenser{position:absolute;left:50%;top:90px;transform:translate(-50%,-50%);width:100px;height:100px;z-index:3;
+  background:url('assets/svg/dispenser.svg') center/contain no-repeat;
+  filter:drop-shadow(0 0 18px rgba(255,224,138,.85)) drop-shadow(0 0 36px rgba(212,175,55,.5));
+  animation:dispGlow 2.2s ease-in-out infinite alternate}
+@keyframes dispGlow{from{filter:drop-shadow(0 0 14px rgba(255,224,138,.7)) drop-shadow(0 0 30px rgba(212,175,55,.4))}
+  to{filter:drop-shadow(0 0 24px rgba(255,224,138,1)) drop-shadow(0 0 50px rgba(212,175,55,.7))}}
+.dispenser::after{content:'';position:absolute;inset:18%;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #FFE695, #5C3F08);
+  box-shadow:inset 0 0 12px rgba(0,0,0,.5)}
 
-/* === Controls (chamfered banner shapes) === */
+/* Inline WIN bar — uses Figma's win-bar SVG */
+.winBar{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);width:360px;height:64px;z-index:4;
+  background:url('assets/svg/win-bar.svg') center/100% 100% no-repeat;
+  filter:drop-shadow(0 0 14px rgba(0,169,145,.4));
+  display:flex;align-items:center;justify-content:center;gap:18px;opacity:.55;transition:.3s;pointer-events:none}
+.winBar.on{opacity:1;filter:drop-shadow(0 0 22px rgba(255,224,138,.8))}
+.winBar .lbl{font-size:11px;letter-spacing:3px;color:#8A7A5E;font-weight:600;text-transform:uppercase}
+.winBar .num{font-family:'Cinzel',serif;font-size:22px;font-weight:800;color:#FFE695;letter-spacing:1px;
+  text-shadow:0 0 10px rgba(255,224,138,.8);transition:color .25s;line-height:1}
+.winBar.win .num{animation:winPulse .6s cubic-bezier(.2,1.2,.3,1.1)}
+.winBar.big .num{color:#FFB347;text-shadow:0 0 16px rgba(255,107,26,.9)}
+.winBar.mega .num{color:#FF8C42;text-shadow:0 0 16px rgba(255,45,45,.9)}
+.winBar.loss .num{color:#8A7A5E;text-shadow:none}
+@keyframes winPulse{0%{transform:scale(.5);opacity:0}45%{transform:scale(1.25);opacity:1}100%{transform:scale(1);opacity:1}}
+
+/* Floating numbers */
+.floatNum{position:absolute;pointer-events:none;font-family:'Cinzel',serif;font-weight:800;font-size:26px;
+  text-shadow:0 0 12px var(--fnGlow);color:var(--fnCol);animation:floatUp 1.5s ease-out forwards;z-index:8}
+@keyframes floatUp{0%{transform:translate(-50%,0) scale(.4);opacity:0}15%{transform:translate(-50%,-12px) scale(1.25);opacity:1}100%{transform:translate(-50%,-110px) scale(.9);opacity:0}}
+
+/* === CONTROLS — using SVG backgrounds === */
 .panelWrap{position:absolute}
-.panelWrap .lbl{font-size:11px;letter-spacing:2.5px;color:#FFEAA5;font-weight:500;margin-bottom:6px;text-align:center}
-.ctrl{height:42px;min-width:131px;
-  background:linear-gradient(180deg, rgba(15,11,7,.92), rgba(5,4,4,.95));
-  border:1px solid rgba(201,150,43,.75);
-  clip-path:polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  display:flex;align-items:center;justify-content:space-between;padding:0 12px;
-  box-shadow:inset 0 0 1px rgba(255,224,138,.4)}
-.ctrl .arrow{font-size:16px;color:#C9962B;cursor:pointer;line-height:1;padding:0 8px;transition:.15s}
-.ctrl .arrow:hover{color:#FFE08A;text-shadow:0 0 8px #FFE08A;transform:scale(1.15)}
-.ctrl .arrow:active{transform:scale(.95)}
-.ctrl .val{font-family:'Inter';font-size:16px;font-weight:700;color:#FFEAA5;text-shadow:0 0 8px rgba(255,224,138,.4)}
+.panelWrap .lbl{font-size:11px;letter-spacing:2.5px;color:#FFE695;font-weight:500;margin-bottom:6px;text-align:center}
+.ctrl{height:42px;min-width:131px;position:relative;display:flex;align-items:center;justify-content:space-between;padding:0 14px;
+  background:url('assets/svg/btn-bg.svg') no-repeat;background-size:100% 100%;
+  filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
+.ctrl .arrow{width:18px;height:22px;cursor:pointer;background-size:contain;background-repeat:no-repeat;background-position:center;transition:.15s;
+  filter:drop-shadow(0 0 6px rgba(212,175,55,.5))}
+.ctrl .arrow.l{background-image:url('assets/svg/arrow-left.svg')}
+.ctrl .arrow.r{background-image:url('assets/svg/arrow-right.svg')}
+.ctrl .arrow:hover{transform:scale(1.2);filter:drop-shadow(0 0 12px #FFE695)}
+.ctrl .arrow:active{transform:scale(.92)}
+.ctrl .val{font-family:'Inter';font-size:16px;font-weight:700;color:#FFE695;text-shadow:0 0 8px rgba(255,224,138,.5)}
 
-.linesWrap{position:absolute;right:60px;top:196px;width:157px}
-.riskWrap{position:absolute;right:60px;top:296px;width:157px}
-.riskIcons{height:42px;border:1px solid rgba(201,150,43,.75);
-  clip-path:polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  background:linear-gradient(180deg, rgba(15,11,7,.92), rgba(5,4,4,.95));
-  display:flex;align-items:center;justify-content:space-around;padding:0 10px;gap:6px}
-.riskIcons .ri{width:32px;height:32px;display:grid;place-items:center;cursor:pointer;transition:.2s;border-radius:50%;
-  background-size:60% 60%;background-position:center;background-repeat:no-repeat;
-  filter:grayscale(.6) brightness(.6)}
-.riskIcons .ri:hover{filter:grayscale(.3) brightness(.9);transform:scale(1.05)}
-.riskIcons .ri.act{filter:grayscale(0) brightness(1.3) drop-shadow(0 0 8px #FFE08A);transform:scale(1.1)}
-.riskIcons .ri[data-risk="LOW"]{background-image:url('assets/risk-multi.png')}
-.riskIcons .ri[data-risk="MEDIUM"]{background-image:url('assets/risk-vortex.png')}
-.riskIcons .ri[data-risk="HIGH"]{background-image:url('assets/risk-flame.png')}
+.linesWrap{position:absolute;right:60px;top:200px;width:157px}
+.riskWrap{position:absolute;right:60px;top:300px;width:157px}
+.riskIcons{height:42px;position:relative;display:flex;align-items:center;justify-content:space-around;padding:0 12px;gap:6px;
+  background:url('assets/svg/btn-bg.svg') no-repeat;background-size:100% 100%;
+  filter:drop-shadow(0 0 6px rgba(212,175,55,.25))}
+.riskIcons .ri{width:30px;height:30px;display:grid;place-items:center;cursor:pointer;transition:.2s;
+  background-size:80% 80%;background-position:center;background-repeat:no-repeat;
+  opacity:.45;filter:saturate(.5)}
+.riskIcons .ri:hover{opacity:.9;filter:saturate(1);transform:scale(1.05)}
+.riskIcons .ri.act{opacity:1;filter:drop-shadow(0 0 10px #FFE695);transform:scale(1.12)}
+.riskIcons .ri[data-risk="LOW"]{background-image:url('assets/svg/risk-multi.svg')}
+.riskIcons .ri[data-risk="MEDIUM"]{background-image:url('assets/svg/risk-vortex.svg')}
+.riskIcons .ri[data-risk="HIGH"]{background-image:url('assets/svg/risk-flame.svg')}
 
-.buyFeat{position:absolute;left:calc(50% - 220px);bottom:80px;width:131px}
-.buyFeatIcons{height:42px;border:1px solid rgba(201,150,43,.75);
-  clip-path:polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  background:linear-gradient(180deg, rgba(15,11,7,.92), rgba(5,4,4,.95));
-  display:flex;align-items:center;justify-content:space-around;padding:0 8px;cursor:pointer;transition:.2s}
-.buyFeatIcons:hover{box-shadow:0 0 12px rgba(255,224,138,.4)}
-.buyFeatIcons .fi{width:24px;height:24px;display:grid;place-items:center;font-size:14px;color:#5C3F08;font-weight:700;transition:.2s}
-.buyFeatIcons .fi.act{color:#FFE08A;text-shadow:0 0 10px #FFE08A;transform:scale(1.15)}
+.buyFeat{position:absolute;left:calc(50% - 240px);bottom:80px;width:131px}
+.buyFeatIcons{height:42px;position:relative;display:flex;align-items:center;justify-content:space-around;padding:0 10px;cursor:pointer;
+  background:url('assets/svg/btn-bg.svg') no-repeat;background-size:100% 100%;
+  filter:drop-shadow(0 0 6px rgba(212,175,55,.25));transition:.2s}
+.buyFeatIcons:hover{filter:drop-shadow(0 0 14px rgba(255,224,138,.5))}
+.buyFeatIcons .fi{width:22px;height:22px;display:grid;place-items:center;font-size:13px;color:#5C3F08;font-weight:700;transition:.2s}
+.buyFeatIcons .fi.act{color:#FFE695;text-shadow:0 0 10px #FFE695;transform:scale(1.15)}
 .buyFeatIcons .fi.purple.act{color:#E6A6FF;text-shadow:0 0 10px #B946FF}
 .buyFeatIcons .fi.blue.act{color:#9BC8FF;text-shadow:0 0 10px #4A9EFF}
 .buyFeatIcons .fi.wild.act{color:#FFB347;text-shadow:0 0 10px #FF6B1A}
 
-.ballsAmt{position:absolute;left:calc(50% - 220px);bottom:180px;width:131px}
-.betAmt{position:absolute;left:calc(50% + 90px);bottom:80px;width:157px}
-.autoCtrl{position:absolute;left:calc(50% + 90px);bottom:180px;width:131px}
+.ballsAmt{position:absolute;left:calc(50% - 240px);bottom:184px;width:131px}
+.betAmt{position:absolute;left:calc(50% + 110px);bottom:80px;width:157px}
+.autoCtrl{position:absolute;left:calc(50% + 110px);bottom:184px;width:131px}
 
-/* PLAY button — uses the Figma asset */
-.playWrap{position:absolute;left:50%;bottom:60px;transform:translateX(-50%);width:170px;height:170px;cursor:pointer;z-index:10;
+/* PLAY — yellow striped circle from Figma */
+.playWrap{position:absolute;left:50%;bottom:54px;transform:translateX(-50%);width:170px;height:170px;cursor:pointer;z-index:10;
   background:url('assets/play.png') center/contain no-repeat;
-  filter:drop-shadow(0 0 20px rgba(255,224,138,.7)) drop-shadow(0 0 40px rgba(201,150,43,.4));
-  transition:.15s}
+  filter:drop-shadow(0 0 22px rgba(255,224,138,.7)) drop-shadow(0 0 50px rgba(212,175,55,.4));
+  transition:transform .15s}
 .playWrap:hover{transform:translateX(-50%) scale(1.04);
-  filter:drop-shadow(0 0 32px rgba(255,224,138,1)) drop-shadow(0 0 60px rgba(201,150,43,.7))}
+  filter:drop-shadow(0 0 32px rgba(255,224,138,1)) drop-shadow(0 0 70px rgba(212,175,55,.7))}
 .playWrap:active{transform:translateX(-50%) scale(.96)}
 .playWrap.disabled{opacity:.45;cursor:not-allowed}
-/* Light sweep over play button */
-.playWrap::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(60deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);background-size:300% 100%;animation:plySweep 2.6s linear infinite;mix-blend-mode:overlay;-webkit-mask:url('assets/play.png') center/contain no-repeat;mask:url('assets/play.png') center/contain no-repeat}
-@keyframes plySweep{0%{background-position:150% 0}100%{background-position:-50% 0}}
+/* Polygon outline overlay (Figma Polygon 2) */
+.playWrap::after{content:'';position:absolute;left:-8px;top:-8px;right:-8px;bottom:-8px;
+  background:url('assets/svg/play-poly.svg') center/contain no-repeat;
+  filter:drop-shadow(0 0 6px rgba(212,175,55,.6));opacity:.7;animation:plyRot 12s linear infinite}
+@keyframes plyRot{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+/* Light sweep on play button surface */
+.playWrap::before{content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(60deg, transparent 30%, rgba(255,255,255,.4) 50%, transparent 70%);
+  background-size:300% 100%;animation:plySweep 2.6s linear infinite;mix-blend-mode:overlay;
+  -webkit-mask:url('assets/play.png') center/contain no-repeat;mask:url('assets/play.png') center/contain no-repeat}
+@keyframes plySweep{0%{background-position:180% 0}100%{background-position:-80% 0}}
 
 /* Bottom bar */
-.botbar{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:space-between;align-items:center;padding:0 64px;font-size:11px;color:#FFEAA5;letter-spacing:1.5px;z-index:5;pointer-events:none}
+.botbar{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:space-between;align-items:center;padding:0 64px;font-size:11px;color:#FFE695;letter-spacing:1.5px;z-index:5;pointer-events:none}
 .botbar .l,.botbar .r{display:flex;gap:24px;align-items:center;pointer-events:auto}
-.botbar .it{display:flex;align-items:center;gap:6px;cursor:pointer;transition:.15s;text-transform:uppercase}
-.botbar .it:hover{color:#FFE08A}
+.botbar .it{display:flex;align-items:center;gap:8px;cursor:pointer;transition:.15s;text-transform:uppercase}
+.botbar .it:hover{color:#FFF6D8}
 .botbar .it .ic{width:22px;height:22px;background-size:contain;background-repeat:no-repeat;background-position:center;
-  filter:grayscale(.4) brightness(1.1)}
-.botbar .it:hover .ic{filter:none drop-shadow(0 0 6px #FFE08A)}
-.botbar .it .ic.s{background-image:url('assets/ic-sound.png')}
-.botbar .it .ic.m{background-image:url('assets/ic-menu.png')}
-.botbar .v{color:#FFE08A;font-weight:700;text-shadow:0 0 6px rgba(255,224,138,.5);transition:.25s}
+  transition:filter .15s}
+.botbar .it:hover .ic{filter:drop-shadow(0 0 8px #FFE695)}
+.botbar .it .ic.s{background-image:url('assets/svg/ic-sound.svg')}
+.botbar .it .ic.m{background-image:url('assets/svg/ic-menu.svg')}
+.botbar .v{color:#FFE695;font-weight:700;text-shadow:0 0 6px rgba(255,224,138,.5);transition:.25s}
 .botbar .v.flash{color:#FF6B1A !important;text-shadow:0 0 12px #FF6B1A;animation:flashBal .8s}
 @keyframes flashBal{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .botbar .v.gain{animation:gain .9s ease-out}
-@keyframes gain{0%{color:#3FCB7C;text-shadow:0 0 14px #3FCB7C;transform:scale(1.08)}100%{color:#FFE08A;transform:scale(1)}}
+@keyframes gain{0%{color:#3FCB7C;text-shadow:0 0 14px #3FCB7C;transform:scale(1.08)}100%{color:#FFE695;transform:scale(1)}}
+
+/* Combo / streak */
+.combo{position:absolute;left:60px;bottom:140px;width:330px;opacity:0;transition:.3s;pointer-events:none}
+.combo.on{opacity:1}
+.combo .cL{font-size:10px;letter-spacing:3px;color:#8A7A5E;font-weight:500}
+.combo .cV{font-family:'Cinzel',serif;font-size:24px;font-weight:800;color:#FFE695;text-shadow:0 0 10px rgba(255,224,138,.7)}
+.combo .cV.hot{color:#FFB347;text-shadow:0 0 14px #FF6B1A;animation:hotpulse 1.5s ease-in-out infinite alternate}
+@keyframes hotpulse{from{transform:scale(1)}to{transform:scale(1.06)}}
 
 /* hint */
 .hint{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:2px;color:rgba(138,122,94,.45);font-weight:500;pointer-events:none}
 
-/* ====== MODALS (only features + info, NOT win) ====== */
+/* === MODALS (feature, info — no big-win modal) === */
 .overlay{position:fixed;inset:0;background:rgba(5,4,4,.78);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .overlay.on{display:flex;animation:fadeBg .2s}
 @keyframes fadeBg{from{opacity:0}to{opacity:1}}
 .modal{width:720px;max-width:92vw;max-height:92vh;padding:40px;position:relative;
   background:linear-gradient(180deg, rgba(20,15,10,.97), rgba(5,4,4,.98));
-  border:1.5px solid rgba(201,150,43,.7);
+  border:1.5px solid rgba(212,175,55,.7);
   clip-path:polygon(24px 0, calc(100% - 24px) 0, 100% 24px, 100% calc(100% - 24px), calc(100% - 24px) 100%, 24px 100%, 0 calc(100% - 24px), 0 24px);
   overflow:auto;animation:modIn .25s cubic-bezier(.2,.9,.3,1.2);box-shadow:0 30px 80px rgba(0,0,0,.8)}
 @keyframes modIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
-.modal .x{position:absolute;top:18px;right:18px;width:32px;height:32px;display:grid;place-items:center;color:#C9962B;cursor:pointer;font-size:18px;background:transparent;border:1px solid rgba(201,150,43,.5);border-radius:50%}
-.modal .x:hover{color:#FFE08A;border-color:#FFE08A;box-shadow:0 0 8px #FFE08A}
+.modal .x{position:absolute;top:18px;right:18px;width:32px;height:32px;display:grid;place-items:center;color:#D4AF37;cursor:pointer;font-size:18px;background:transparent;border:1px solid rgba(212,175,55,.5);border-radius:50%}
+.modal .x:hover{color:#FFE695;border-color:#FFE695;box-shadow:0 0 8px #FFE695}
 .modal h2{font-family:'Cinzel',serif;font-size:32px;letter-spacing:3px;text-align:center;
-  background:linear-gradient(180deg,#FFE08A,#C9962B);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px rgba(201,150,43,.5));margin-bottom:6px}
-.modal .lead{text-align:center;font-size:11px;letter-spacing:5px;color:#C9962B;font-weight:500;margin-bottom:20px}
-.modal .div{height:1px;background:linear-gradient(90deg,transparent,#C9962B,transparent);margin:14px 0}
+  background:linear-gradient(180deg,#FFE695,#D4AF37);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px rgba(212,175,55,.5));margin-bottom:6px}
+.modal .lead{text-align:center;font-size:11px;letter-spacing:5px;color:#D4AF37;font-weight:500;margin-bottom:20px}
+.modal .div{height:1px;background:linear-gradient(90deg,transparent,#D4AF37,transparent);margin:14px 0}
 
 .fcards{display:flex;flex-direction:column;gap:12px;margin:18px 0}
 .fcard{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;
@@ -190,7 +215,7 @@ body{position:fixed;inset:0}
 .fcard .ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:20px;color:#fff;font-weight:700;
   background:radial-gradient(circle at 35% 30%, var(--fcLite), var(--fc));box-shadow:0 0 12px var(--fcGlow);flex-shrink:0}
 .fcard .body{flex:1;min-width:0}
-.fcard .nm{font-size:14px;letter-spacing:2px;font-weight:700;color:#FFEAA5}
+.fcard .nm{font-size:14px;letter-spacing:2px;font-weight:700;color:#FFE695}
 .fcard .ds{font-size:11px;color:#8A7A5E;margin-top:3px;line-height:1.4}
 .fcard .cst{font-size:13px;font-weight:700;color:var(--fc);margin-right:10px}
 .fcard .tg{width:38px;height:22px;border-radius:11px;background:#1A140C;border:1px solid rgba(58,43,20,.7);position:relative;transition:.2s;flex-shrink:0}
@@ -201,24 +226,24 @@ body{position:fixed;inset:0}
 .fc-blue{--fc:#4A9EFF;--fcLite:#9BC8FF;--fcGlow:rgba(74,158,255,.5)}
 .fc-wild{--fc:#FF6B1A;--fcLite:#FFB347;--fcGlow:rgba(255,107,26,.5)}
 
-.modFoot{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:14px 18px;border:1px solid rgba(201,150,43,.4);
+.modFoot{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:14px 18px;border:1px solid rgba(212,175,55,.4);
   clip-path:polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);background:rgba(5,4,4,.6)}
 .modFoot .fL{font-size:10px;letter-spacing:2px;color:#8A7A5E;font-weight:500}
-.modFoot .fV{font-size:22px;font-weight:700;color:#FFE08A;line-height:1}
+.modFoot .fV{font-size:22px;font-weight:700;color:#FFE695;line-height:1}
 .modFoot .fB{font-size:11px;color:#B8A380;margin-top:4px}
-.btnPrime{padding:14px 28px;background:linear-gradient(180deg,#FFE08A,#C9962B);color:#3D2A0B;font-weight:800;font-size:13px;letter-spacing:3px;border:none;cursor:pointer;font-family:inherit;
+.btnPrime{padding:14px 28px;background:linear-gradient(180deg,#FFE695,#D4AF37);color:#3D2A0B;font-weight:800;font-size:13px;letter-spacing:3px;border:none;cursor:pointer;font-family:inherit;
   clip-path:polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  box-shadow:0 0 18px rgba(201,150,43,.7);transition:.15s}
+  box-shadow:0 0 18px rgba(212,175,55,.7);transition:.15s}
 .btnPrime:hover{transform:translateY(-1px);box-shadow:0 0 26px rgba(255,224,138,.9)}
 
-/* Cinematic special ball banner */
+/* Cinematic */
 #cinema{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;z-index:90;pointer-events:none;background:rgba(0,0,0,0);transition:background .3s}
 #cinema.on{display:flex;background:rgba(5,4,4,.45)}
 #cinema .banner{margin-top:22vh;text-align:center;animation:cinIn .4s cubic-bezier(.2,1.2,.3,1.1)}
 @keyframes cinIn{from{transform:translateY(-30px) scale(.9);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
 #cinema .sub{font-size:12px;letter-spacing:8px;color:var(--cAcc);font-weight:500;margin-bottom:12px;text-shadow:0 0 12px var(--cAcc)}
 #cinema .big{font-family:'Cinzel',serif;font-size:64px;font-weight:800;letter-spacing:10px;
-  background:linear-gradient(180deg,#FFE08A,var(--cAcc) 50%,var(--cAccD));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 20px var(--cAcc));line-height:1}
+  background:linear-gradient(180deg,#FFE695,var(--cAcc) 50%,var(--cAccD));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 20px var(--cAcc));line-height:1}
 .cAcc-wild{--cAcc:#FFB347;--cAccD:#FF6B1A}
 .cAcc-purple{--cAcc:#E6A6FF;--cAccD:#B946FF}
 .cAcc-blue{--cAcc:#9BC8FF;--cAccD:#4A9EFF}
@@ -226,72 +251,54 @@ body{position:fixed;inset:0}
 
 @keyframes shake{0%,100%{transform:translateX(-50%) translate(0,0)}20%{transform:translateX(-50%) translate(-5px,-3px)}40%{transform:translateX(-50%) translate(6px,3px)}60%{transform:translateX(-50%) translate(-4px,4px)}80%{transform:translateX(-50%) translate(4px,-4px)}}
 #boardWrap.shake{animation:shake .55s linear}
-
-/* Combo counter */
-.combo{position:absolute;left:60px;bottom:140px;width:330px;text-align:left;opacity:0;transition:.3s;pointer-events:none}
-.combo.on{opacity:1}
-.combo .cL{font-size:10px;letter-spacing:3px;color:#8A7A5E;font-weight:500}
-.combo .cV{font-family:'Cinzel',serif;font-size:24px;font-weight:800;color:#FFE08A;text-shadow:0 0 10px rgba(255,224,138,.7)}
-.combo .cV.hot{color:#FFB347;text-shadow:0 0 14px #FF6B1A;animation:hotpulse 1.5s ease-in-out infinite alternate}
-@keyframes hotpulse{from{transform:scale(1)}to{transform:scale(1.06)}}
 </style>
 </head>
 <body>
 <div id="stage">
 <div id="game">
 
-<!-- LOGO image -->
 <div class="logo"></div>
 
-<!-- Top-right pip (small dispenser visual) -->
-<div class="topPip">
-  <div class="grid">
-    <div class="b"></div><div class="b"></div><div class="b"></div>
-    <div class="b"></div><div class="b r"></div><div class="b"></div>
-    <div class="b"></div><div class="b"></div><div class="b"></div>
-  </div>
-</div>
-
-<!-- LEFT STATS -->
 <div class="statsTbl">
-  <div class="head">
-    <div>TIME</div><div>TOTAL BET</div><div>PAYOUT</div><div>PROFIT</div>
-  </div>
+  <div class="head"><div>TIME</div><div>TOTAL BET</div><div>PAYOUT</div><div>PROFIT</div></div>
   <div class="rowsBox" id="statRows"></div>
 </div>
 
-<!-- BOARD -->
-<div id="boardWrap">
-  <canvas id="board" width="600" height="730"></canvas>
-  <div class="winHud" id="winHud">
-    <div class="lab">LAST WIN</div>
-    <div class="num" id="winNum">0.00 ETH</div>
-  </div>
-</div>
-
-<!-- Combo display -->
 <div class="combo" id="combo">
   <div class="cL">WIN STREAK</div>
   <div class="cV" id="comboVal">×0</div>
 </div>
 
-<!-- LINES -->
-<div class="linesWrap panelWrap">
-  <div class="lbl">LINES</div>
-  <div class="ctrl">
-    <div class="arrow" id="linesDown">◀</div>
-    <div class="val" id="linesVal">12</div>
-    <div class="arrow" id="linesUp">▶</div>
+<!-- Diagonal triangle lines (Vector 10/11 from Figma) -->
+<div class="triLine left"></div>
+<div class="triLine right"></div>
+
+<!-- Dispenser (Ellipse 7 SVG) -->
+<div class="dispenser"></div>
+
+<!-- Board canvas -->
+<div id="boardWrap">
+  <canvas id="board" width="560" height="700"></canvas>
+  <!-- Inline win bar (slot row chamfered SVG) -->
+  <div class="winBar" id="winBar">
+    <div class="lbl" id="winLbl">PLINKO GONE WILD</div>
+    <div class="num" id="winNum">— ETH</div>
   </div>
 </div>
 
-<!-- RISK LEVEL with Figma icons -->
+<!-- LINES -->
+<div class="linesWrap panelWrap">
+  <div class="lbl">LINES</div>
+  <div class="ctrl"><div class="arrow l" id="linesDown"></div><div class="val" id="linesVal">12</div><div class="arrow r" id="linesUp"></div></div>
+</div>
+
+<!-- RISK LEVEL -->
 <div class="riskWrap panelWrap">
   <div class="lbl">RISK LEVEL</div>
   <div class="riskIcons" id="riskCtrl">
-    <div class="ri" data-risk="LOW" title="Low risk"></div>
-    <div class="ri" data-risk="MEDIUM" title="Medium risk"></div>
-    <div class="ri act" data-risk="HIGH" title="High risk"></div>
+    <div class="ri" data-risk="LOW"></div>
+    <div class="ri" data-risk="MEDIUM"></div>
+    <div class="ri act" data-risk="HIGH"></div>
   </div>
 </div>
 
@@ -308,34 +315,22 @@ body{position:fixed;inset:0}
 <!-- BALLS AMOUNT -->
 <div class="ballsAmt panelWrap">
   <div class="lbl">BALLS AMOUNT</div>
-  <div class="ctrl">
-    <div class="arrow" id="ballsDown">◀</div>
-    <div class="val" id="ballsVal">1</div>
-    <div class="arrow" id="ballsUp">▶</div>
-  </div>
+  <div class="ctrl"><div class="arrow l" id="ballsDown"></div><div class="val" id="ballsVal">1</div><div class="arrow r" id="ballsUp"></div></div>
 </div>
 
-<!-- PLAY (Figma yellow striped button) -->
+<!-- PLAY -->
 <div class="playWrap" id="playBtn" title="Drop ball (Space)"></div>
 
 <!-- BET AMOUNT -->
 <div class="betAmt panelWrap">
   <div class="lbl">BET AMOUNT FUN</div>
-  <div class="ctrl">
-    <div class="arrow" id="betDown">◀</div>
-    <div class="val" id="betVal">2.00</div>
-    <div class="arrow" id="betUp">▶</div>
-  </div>
+  <div class="ctrl"><div class="arrow l" id="betDown"></div><div class="val" id="betVal">2.00</div><div class="arrow r" id="betUp"></div></div>
 </div>
 
 <!-- AUTO -->
 <div class="autoCtrl panelWrap">
   <div class="lbl">AUTO</div>
-  <div class="ctrl">
-    <div class="arrow" id="autoDown">◀</div>
-    <div class="val" id="autoVal">1</div>
-    <div class="arrow" id="autoUp">▶</div>
-  </div>
+  <div class="ctrl"><div class="arrow l" id="autoDown"></div><div class="val" id="autoVal">1</div><div class="arrow r" id="autoUp"></div></div>
 </div>
 
 <!-- Bottom bar -->
@@ -352,8 +347,7 @@ body{position:fixed;inset:0}
 
 <div class="hint">SPACE drop · F features · I info · ESC close</div>
 
-<!-- Floating numbers container -->
-<div id="floats" style="position:absolute;inset:0;pointer-events:none;z-index:8"></div>
+<div id="floats" style="position:absolute;inset:0;pointer-events:none;z-index:9"></div>
 
 </div></div>
 
@@ -385,23 +379,19 @@ body{position:fixed;inset:0}
     <h2>PLINKO GONE WILD</h2>
     <div class="div"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:12px;line-height:1.6">
-      <div><strong style="color:#FFE08A;letter-spacing:2px;font-size:11px">01 · GAMEPLAY</strong><br>
-        Set bet, lines (rows), risk. Press PLAY. The ball releases from the dispenser, bounces through the pegs, and lands in a multiplier slot. Center = jackpot. Outer slots return part of bet.</div>
-      <div><strong style="color:#FFE08A;letter-spacing:2px;font-size:11px">02 · BALLS</strong><br>
-        <span style="color:#F2C75C">●</span> Gold standard · <span style="color:#FF6B1A">⚡</span> Wild ×2 · <span style="color:#B946FF">×</span> Multi-ball splits · <span style="color:#4A9EFF">↻</span> Respin free drop · <span style="color:#FF2D2D">★</span> Jackpot ×5</div>
-      <div><strong style="color:#FFE08A;letter-spacing:2px;font-size:11px">03 · FEATURES</strong><br>
-        Toggle 3 power-ups: Multipliers (×128 max), Respin Chance (free drops), Multi-Ball (×5 cascade). Each adds % to base bet.</div>
-      <div><strong style="color:#FFE08A;letter-spacing:2px;font-size:11px">04 · RTP</strong><br>
-        Return to Player: <span style="color:#FFE08A;font-weight:700">97.4%</span> (HIGH 12 rows). Provably fair, SHA-256 seeded.</div>
+      <div><strong style="color:#FFE695;letter-spacing:2px;font-size:11px">01 · GAMEPLAY</strong><br>Set bet, lines (rows), risk. Press PLAY. The ball releases from the dispenser, bounces through the pegs, lands in a multiplier slot. Center = jackpot.</div>
+      <div><strong style="color:#FFE695;letter-spacing:2px;font-size:11px">02 · BALLS</strong><br><span style="color:#F2C75C">●</span> Gold · <span style="color:#FF6B1A">⚡</span> Wild ×2 · <span style="color:#B946FF">×</span> Multi-ball · <span style="color:#4A9EFF">↻</span> Respin · <span style="color:#FF2D2D">★</span> Jackpot ×5</div>
+      <div><strong style="color:#FFE695;letter-spacing:2px;font-size:11px">03 · FEATURES</strong><br>Toggle Multipliers (×128 max), Respin (free drops), Multi-Ball (×5 cascade). Each adds % to base bet.</div>
+      <div><strong style="color:#FFE695;letter-spacing:2px;font-size:11px">04 · RTP</strong><br>Return to Player: <span style="color:#FFE695;font-weight:700">97.4%</span> (HIGH 12 rows). Provably fair.</div>
     </div>
     <div class="div"></div>
     <div style="text-align:center;color:#8A7A5E;font-size:11px;letter-spacing:1px">
-      Session: <span id="infoDrops" style="color:#FFE08A">0</span> drops · Wagered <span id="infoWager" style="color:#FFE08A">0.00 ETH</span> · ROI <span id="infoROI" style="color:#3FCB7C">+0.0%</span>
+      Session: <span id="infoDrops" style="color:#FFE695">0</span> drops · Wagered <span id="infoWager" style="color:#FFE695">0.00 ETH</span> · ROI <span id="infoROI" style="color:#3FCB7C">+0.0%</span>
     </div>
   </div>
 </div>
 
-<!-- CINEMATIC (small, doesn't block) -->
+<!-- CINEMATIC banner -->
 <div id="cinema" class="cAcc-wild">
   <div class="banner">
     <div class="sub" id="cinSub">SPECIAL BALL TRIGGERED</div>
@@ -417,7 +407,6 @@ const rand=(a,b)=>Math.random()*(b-a)+a;
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' ETH';
 const fmtNum=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-// ============ Responsive fit ============
 function fit(){
   const vv=window.visualViewport;
   const w=vv?vv.width:window.innerWidth;
@@ -432,7 +421,6 @@ if (window.visualViewport){
 }
 requestAnimationFrame(()=>requestAnimationFrame(fit)); fit();
 
-// ============ State ============
 const state={
   balance:1000, bet:2.00, rows:12, risk:'HIGH', auto:1, balls:1,
   features:{mult:true, respin:true, multi:false},
@@ -441,15 +429,13 @@ const state={
   streak:0, lastWinTime:0
 };
 
-// ============ Tables ============
 const TBL={
   LOW:{8:[5.6,2.1,1.1,1,.5,1,1.1,2.1,5.6], 10:[8.9,3,1.4,1.1,1,.5,1,1.1,1.4,3,8.9], 12:[10,3,1.6,1.4,1.1,1,.5,1,1.1,1.4,1.6,3,10], 14:[7.1,4,1.9,1.4,1.3,1.1,1,.5,1,1.1,1.3,1.4,1.9,4,7.1], 16:[16,9,2,1.4,1.4,1.2,1.1,1,.5,1,1.1,1.2,1.4,1.4,2,9,16]},
   MEDIUM:{8:[13,3,1.3,.7,.4,.7,1.3,3,13], 10:[22,5,2,1.4,.6,.4,.6,1.4,2,5,22], 12:[33,11,4,2,1.1,.6,.3,.6,1.1,2,4,11,33], 14:[58,15,7,4,1.9,1,.5,.2,.5,1,1.9,4,7,15,58], 16:[110,41,10,5,3,1.5,1,.5,.3,.5,1,1.5,3,5,10,41,110]},
   HIGH:{8:[29,4,1.5,.3,.2,.3,1.5,4,29], 10:[76,10,3,.9,.3,.2,.3,.9,3,10,76], 12:[128,24,5,2,.7,.3,.2,.3,.7,2,5,24,128], 14:[256,43,7,3,1,.5,.2,.2,.2,.5,1,3,7,43,256], 16:[1000,130,26,9,4,1.4,.5,.3,.2,.3,.5,1.4,4,9,26,130,1000]}
 };
 
-// ============ Board ============
-const board={c:$('#board'), ctx:null, W:600, H:730, pegs:[], slots:[], cx:300, topY:90, sp:34};
+const board={c:$('#board'), ctx:null, W:560, H:700, pegs:[], slots:[], cx:280, topY:90, sp:34};
 function setupCanvas(c){
   const dpr=Math.min(window.devicePixelRatio||1,2.5);
   const w=c.width,h=c.height;
@@ -464,8 +450,8 @@ board.ctx=setupCanvas(board.c);
 
 function buildBoard(){
   const r=state.rows, topPegs=3, bottomPegs=topPegs+r-1;
-  const availW=board.W-40, availH=board.H-220;
-  const sp=Math.min(availW/(bottomPegs), availH/r, 42);
+  const availW=board.W-50, availH=board.H-220;
+  const sp=Math.min(availW/(bottomPegs), availH/r, 38);
   board.sp=sp;
   board.pegs=[];
   for (let i=0;i<r;i++){
@@ -483,7 +469,7 @@ function buildBoard(){
   board.slotsY=board.topY+(r-1)*sp+30;
   let tbl=TBL[state.risk][r] || TBL[state.risk][12];
   if (!state.features.mult) tbl=tbl.map(v=>Math.max(.5,Math.min(2.5,v*.4+.6)));
-  board.slots=tbl.map((m,i)=>({x:slotsX0+i*sp, y:board.slotsY, w:sp, h:38, m, lastHit:-9999}));
+  board.slots=tbl.map((m,i)=>({x:slotsX0+i*sp, y:board.slotsY, w:sp, h:36, m, lastHit:-9999}));
   if (state.features.multi){
     const cands=board.pegs.filter(p=>{
       const ri=Math.round((p.y-board.topY)/sp);
@@ -498,9 +484,8 @@ function buildBoard(){
   updateHUD();
 }
 
-// ============ Balls / particles ============
 const BT={
-  gold:{nm:'GOLD',col:'#FFE08A',glow:'#F2C75C',dark:'#5C3F08',mul:1,cin:false},
+  gold:{nm:'GOLD',col:'#FFE695',glow:'#D4AF37',dark:'#5C3F08',mul:1,cin:false},
   wild:{nm:'WILD',col:'#FFB347',glow:'#FF6B1A',dark:'#8B2500',mul:2,cin:true,acc:'cAcc-wild'},
   mult:{nm:'MULTI',col:'#E6A6FF',glow:'#B946FF',dark:'#5E1A8A',mul:1.5,cin:true,acc:'cAcc-purple'},
   respin:{nm:'RESPIN',col:'#9BC8FF',glow:'#4A9EFF',dark:'#1A4080',mul:1,cin:true,acc:'cAcc-blue'},
@@ -531,7 +516,7 @@ class Ball{
           this.vx-=(1+e)*dt2*nx;this.vy-=(1+e)*dt2*ny;
           this.vx+=rand(-18,18);
           p.lastHit=performance.now();
-          for (let k=0;k<4;k++) particles.push({x:p.x,y:p.y,vx:rand(-120,120),vy:rand(-160,-30),r:rand(1.2,2.4),life:1,decay:rand(2,4),color:'#FFE08A'});
+          for (let k=0;k<4;k++) particles.push({x:p.x,y:p.y,vx:rand(-120,120),vy:rand(-160,-30),r:rand(1.2,2.4),life:1,decay:rand(2,4),color:'#FFE695'});
           if (state.soundOn) ping(180+Math.random()*200,.04);
           if (p.split && this.canSplit && this.splits<1 && !this.fromSplit){
             this.splits++;
@@ -564,15 +549,12 @@ class Ball{
     state.history.unshift({n:state.drops, type:this.type, m, pay, bet:this.bet, time:new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit'})});
     if (state.history.length>15) state.history.pop();
 
-    // Particles burst
     for (let i=0;i<35;i++){const a=rand(0,Math.PI*2),sp=rand(80,280);particles.push({x:this.x,y:this.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-50,r:rand(2,4.5),life:1,decay:rand(1,2),color:this.t.glow})}
     if (state.soundOn) landSnd(m);
 
-    // Inline win HUD (no modal)
-    showInlineWin(pay, profit, m, this.x);
-    // Floating "+X" or "-X" number from the ball's landing position
+    showInlineWin(pay, profit, m);
     spawnFloatNum(this.x, sl.y, profit, m);
-    // Streak
+
     if (profit > 0){
       const now=performance.now();
       if (now - state.lastWinTime < 5000) state.streak++;
@@ -594,66 +576,56 @@ class Ball{
   }
 }
 
-// ============ Inline win + floats ============
 let winHudTimer=null;
-function showInlineWin(pay, profit, mult, ballX){
-  const hud=$('#winHud'), num=$('#winNum');
-  hud.classList.add('on');
-  num.classList.remove('flash'); void num.offsetWidth; num.classList.add('flash');
-  // color based on multiplier
-  let col='#FFE08A', glow='rgba(255,224,138,.7)', txt;
-  if (profit < 0){ col='#8A7A5E'; glow='rgba(138,122,94,.4)'; }
-  if (mult >= 50){ col='#FF8C42'; glow='rgba(255,45,45,.85)'; }
-  else if (mult >= 10){ col='#FFB347'; glow='rgba(255,107,26,.8)'; }
-  else if (mult >= 2){ col='#FFE08A'; glow='rgba(255,224,138,.85)'; }
-  num.style.setProperty('--wcCol', col);
-  num.style.setProperty('--wcGlow', glow);
-  num.textContent = (profit>=0?'+':'') + fmt(profit);
+function showInlineWin(pay, profit, mult){
+  const bar=$('#winBar'), lbl=$('#winLbl'), num=$('#winNum');
+  bar.classList.remove('big','mega','loss','win');
+  void bar.offsetWidth;
+  bar.classList.add('on','win');
+  if (profit < 0){ bar.classList.add('loss'); lbl.textContent='LAST'; num.textContent=fmt(profit); }
+  else {
+    if (mult >= 50){ bar.classList.add('mega'); lbl.textContent='JACKPOT'; }
+    else if (mult >= 10){ bar.classList.add('big'); lbl.textContent='MEGA WIN'; }
+    else if (mult >= 2){ lbl.textContent='WIN'; }
+    else { lbl.textContent='LAST'; }
+    num.textContent = '+' + fmt(profit);
+  }
   clearTimeout(winHudTimer);
-  winHudTimer = setTimeout(()=>hud.classList.remove('on'), 3500);
-  // Flash balance
+  winHudTimer=setTimeout(()=>bar.classList.remove('on'),3500);
   const bal=$('#balVal');
   bal.classList.remove('gain','flash'); void bal.offsetWidth;
   bal.classList.add(profit>=0?'gain':'flash');
 }
 
 function spawnFloatNum(x, y, profit, mult){
-  // x,y are board canvas coords; need to map to game coordinates
-  // boardWrap is 600 wide at left:50%-300, top:130
-  const gameX = 1440/2 - 600/2 + x; // 1440 game width, board 600 wide, centered
-  const gameY = 130 + y;
+  const gameX = 1440/2 - 560/2 + x;
+  const gameY = 140 + y;
   const el=document.createElement('div');
   el.className='floatNum';
-  let col='#FFE08A', glow='rgba(255,224,138,.8)';
+  let col='#FFE695', glow='rgba(255,224,138,.8)';
   if (profit < 0){ col='#8A7A5E'; glow='rgba(138,122,94,.4)'; }
   if (mult >= 50){ col='#FF8C42'; glow='rgba(255,45,45,.9)'; }
   else if (mult >= 10){ col='#FFB347'; glow='rgba(255,107,26,.8)'; }
-  else if (mult >= 2){ col='#FFE08A'; glow='rgba(255,224,138,.85)'; }
   el.style.cssText=`left:${gameX}px;top:${gameY}px;--fnCol:${col};--fnGlow:${glow}`;
   el.textContent = `${profit>=0?'+':''}${fmtNum(profit)}`;
   $('#floats').appendChild(el);
-  setTimeout(()=>el.remove(), 1500);
+  setTimeout(()=>el.remove(), 1600);
 }
 
 function rayBurst(x, y){
-  // create radiating gold lines from landing point
   for (let i=0;i<14;i++){
     const ang = (i/14)*Math.PI*2;
     for (let k=0;k<6;k++){
       particles.push({
-        x: x + Math.cos(ang)*8,
-        y: y + Math.sin(ang)*8,
-        vx: Math.cos(ang)*rand(180,360),
-        vy: Math.sin(ang)*rand(180,360),
-        r: rand(2,4),
-        life: 1, decay: rand(.8,1.4),
-        color: ['#FFE08A','#FFB347','#FF8C42'][k%3]
+        x: x + Math.cos(ang)*8, y: y + Math.sin(ang)*8,
+        vx: Math.cos(ang)*rand(180,360), vy: Math.sin(ang)*rand(180,360),
+        r: rand(2,4), life: 1, decay: rand(.8,1.4),
+        color: ['#FFE695','#FFB347','#FF8C42'][k%3]
       });
     }
   }
 }
 
-// ============ Render loop ============
 let lastT=performance.now();
 function loop(now){
   const dt=Math.min(.05,(now-lastT)/1000); lastT=now;
@@ -665,19 +637,11 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
-const goldImg=new Image(); goldImg.src='assets/bg.png'; // placeholder for any pre-rendered if needed
-
 function draw(){
   const ctx=board.ctx, now=performance.now();
   ctx.clearRect(0,0,board.W,board.H);
 
-  // Decorative pyramid outline (animated)
-  drawPyramidFrame(ctx, now);
-
-  // Dispenser at top
-  drawDispenser(ctx, now);
-
-  // Pegs
+  // Pegs (small gold dots with halo)
   for (const p of board.pegs){
     const age=(now-p.lastHit)/300, gl=Math.max(0,1-age);
     if (p.split){
@@ -689,12 +653,12 @@ function draw(){
     } else {
       const hr=p.r*(2.2+gl*1.6);
       const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,hr);
-      grad.addColorStop(0,`rgba(255,224,138,${.45+gl*.4})`);
-      grad.addColorStop(1,'rgba(255,224,138,0)');
+      grad.addColorStop(0,`rgba(255,230,149,${.5+gl*.4})`);
+      grad.addColorStop(1,'rgba(255,230,149,0)');
       ctx.fillStyle=grad;
       ctx.beginPath(); ctx.arc(p.x,p.y,hr,0,Math.PI*2); ctx.fill();
       const cg=ctx.createRadialGradient(p.x-.5,p.y-.5,.3,p.x,p.y,p.r);
-      cg.addColorStop(0,'#FFEAA5'); cg.addColorStop(.6,'#F2C75C'); cg.addColorStop(1,'#5C3F08');
+      cg.addColorStop(0,'#FFF6D8'); cg.addColorStop(.6,'#D4AF37'); cg.addColorStop(1,'#5C3F08');
       ctx.fillStyle=cg;
       ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
     }
@@ -714,7 +678,7 @@ function draw(){
     if (sl.m>=50){col='#FF2D2D'}
     else if (sl.m>=10){col='#FF6B1A'}
     else if (sl.m>=3){col='#FFB347'}
-    else if (sl.m>=1){col='#F2C75C'}
+    else if (sl.m>=1){col='#D4AF37'}
     else {col='#5C3F08'}
     const age=(now-sl.lastHit)/700, p=Math.max(0,1-age);
     const w=sl.w-2, h=sl.h+(p*8), y=sl.y-(p*4), x=sl.x+1;
@@ -727,7 +691,6 @@ function draw(){
     ctx.strokeStyle=col; ctx.lineWidth=1+p*1.5;
     roundRect(ctx,x,y,w,h,4,false,true);
     ctx.restore();
-    // Top bar
     ctx.save();
     ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=8;
     ctx.fillRect(x+2, y, w-4, 2);
@@ -754,12 +717,11 @@ function draw(){
 
   // Balls
   for (const b of balls){
-    // Trajectory prediction line (faint dashed line to target slot)
     const idx=Math.min(board.slots.length-1, Math.max(0, Math.floor((b.x-board.slotsX0)/board.slotW)));
     const sl=board.slots[idx];
     if (sl){
       ctx.save();
-      ctx.strokeStyle=`rgba(255,224,138,.18)`;
+      ctx.strokeStyle=`rgba(255,224,138,.2)`;
       ctx.lineWidth=1; ctx.setLineDash([4, 6]);
       ctx.lineDashOffset = -performance.now()/30;
       ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(sl.x+sl.w/2, sl.y);
@@ -788,7 +750,6 @@ function draw(){
     ctx.restore();
   }
 
-  // Pulse on target slot (predicted landing)
   if (balls.length){
     const b=balls[0];
     const idx=Math.min(board.slots.length-1, Math.max(0, Math.floor((b.x-board.slotsX0)/board.slotW)));
@@ -804,78 +765,6 @@ function draw(){
   }
 }
 
-function drawPyramidFrame(ctx, now){
-  // Decorative gold pyramid outline around the peg grid
-  const r=state.rows, sp=board.sp;
-  const topX=board.cx, topY=board.topY - sp*0.6;
-  const bottomY=board.slotsY - 4;
-  const halfW = (r-1) * sp/2 + sp;
-  ctx.save();
-  // animated gradient stroke
-  const g=ctx.createLinearGradient(topX-halfW, topY, topX+halfW, bottomY);
-  const off=(now/2500)%1;
-  g.addColorStop(Math.max(0, off-.2), 'rgba(201,150,43,.0)');
-  g.addColorStop(off, 'rgba(255,224,138,.7)');
-  g.addColorStop(Math.min(1, off+.2), 'rgba(201,150,43,.0)');
-  ctx.strokeStyle=g;
-  ctx.lineWidth=1.2;
-  ctx.shadowColor='#FFE08A'; ctx.shadowBlur=8;
-  ctx.beginPath();
-  ctx.moveTo(topX - 12, topY);
-  ctx.lineTo(topX + 12, topY);
-  ctx.lineTo(topX + halfW, bottomY);
-  ctx.lineTo(topX - halfW, bottomY);
-  ctx.closePath();
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawDispenser(ctx, now){
-  const dx=board.cx, dy=46;
-  // Outer circle (dispenser case)
-  ctx.save();
-  ctx.shadowColor='#FFE08A'; ctx.shadowBlur=14;
-  const g=ctx.createRadialGradient(dx, dy, 0, dx, dy, 28);
-  g.addColorStop(0, 'rgba(201,150,43,.4)');
-  g.addColorStop(.7, 'rgba(92,63,8,.3)');
-  g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle=g;
-  ctx.beginPath(); ctx.arc(dx, dy, 28, 0, Math.PI*2); ctx.fill();
-  // Gold ring
-  ctx.strokeStyle='#FFE08A'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.arc(dx, dy, 22, 0, Math.PI*2); ctx.stroke();
-  ctx.restore();
-  // Orange ball cluster inside
-  const orbs=[
-    {x:-7,y:-6,c:'#FFB347',d:'#7A0F0F'},
-    {x:6,y:-4,c:'#FFE08A',d:'#5C3F08'},
-    {x:-3,y:5,c:'#FF8C42',d:'#7A0F0F'},
-    {x:8,y:6,c:'#FFB347',d:'#8B2500'},
-    {x:0,y:0,c:'#FFE08A',d:'#5C3F08'}
-  ];
-  for (const o of orbs){
-    ctx.save();
-    ctx.shadowColor=o.c; ctx.shadowBlur=6;
-    const og=ctx.createRadialGradient(dx+o.x-1, dy+o.y-1, 0, dx+o.x, dy+o.y, 7);
-    og.addColorStop(0,'#fff'); og.addColorStop(.4,o.c); og.addColorStop(1,o.d);
-    ctx.fillStyle=og;
-    ctx.beginPath(); ctx.arc(dx+o.x, dy+o.y, 6, 0, Math.PI*2); ctx.fill();
-    ctx.restore();
-  }
-  // Drop slot
-  ctx.save();
-  ctx.fillStyle='#050404';
-  ctx.strokeStyle='#C9962B'; ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.moveTo(dx-12, dy+22);
-  ctx.lineTo(dx-10, dy+30);
-  ctx.lineTo(dx+10, dy+30);
-  ctx.lineTo(dx+12, dy+22);
-  ctx.closePath();
-  ctx.fill(); ctx.stroke();
-  ctx.restore();
-}
-
 function roundRect(c,x,y,w,h,r,f,s){
   c.beginPath();
   c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.quadraticCurveTo(x+w,y,x+w,y+r);
@@ -889,7 +778,6 @@ function roundRect(c,x,y,w,h,r,f,s){
 requestAnimationFrame(loop);
 buildBoard();
 
-// ============ Gameplay ============
 function cost(){
   let m=1;
   if (state.features.mult) m+=.25;
@@ -919,7 +807,7 @@ function drop(free=false){
   updateHUD();
 }
 function spawn(type, c){
-  const b=new Ball(board.cx+rand(-2,2), 60, type, c);
+  const b=new Ball(board.cx+rand(-2,2), 70, type, c);
   balls.push(b);
 }
 function cinematic(type, after){
@@ -933,7 +821,6 @@ function cinematic(type, after){
 function shake(){ $('#boardWrap').classList.add('shake'); setTimeout(()=>$('#boardWrap').classList.remove('shake'),550); }
 function flashBal(){ $('#balVal').classList.add('flash'); setTimeout(()=>$('#balVal').classList.remove('flash'),800); }
 
-// ============ HUD ============
 function updateHUD(){
   $('#balVal').textContent=fmt(state.balance);
   $('#betShow').textContent=fmt(cost());
@@ -951,13 +838,12 @@ function updateStats(){
     const r=document.createElement('div');
     r.className='r';
     const net=h.pay-h.bet;
-    const ncol=net>=0?(h.m>=10?'#FFB347':h.m>=2?'#FFE08A':'#3FCB7C'):'#8A7A5E';
+    const ncol=net>=0?(h.m>=10?'#FFB347':h.m>=2?'#FFE695':'#3FCB7C'):'#8A7A5E';
     r.innerHTML=`<div>${h.time}</div><div>${h.bet.toFixed(2)} ETH</div><div>${h.pay.toFixed(2)} ETH</div><div class="pf" style="color:${ncol}">${net>=0?'+':''}${net.toFixed(2)} ETH</div>`;
     box.appendChild(r);
   }
 }
 
-// ============ Controls ============
 $('#playBtn').addEventListener('click', ()=>{
   for (let i=0;i<state.balls;i++) setTimeout(()=>drop(), i*180);
 });
@@ -1014,8 +900,6 @@ function openInfo(){
   $('#infoROI').style.color=roi>=0?'#3FCB7C':'#FF6B1A';
   $('#infoOv').classList.add('on');
 }
-
-// ============ Sounds ============
 function ping(f,d){
   if (!state.soundOn || !state.audio) return;
   const c=state.audio;

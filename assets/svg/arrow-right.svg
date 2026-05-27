@@ -1,0 +1,12 @@
+<svg width="55" height="59" viewBox="0 0 55 59" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#g)">
+<path d="M20 39V20L35 29.5L20 39Z" fill="#FFE695"/>
+</g>
+<defs>
+<filter id="g" x="0" y="0" width="55" height="59" filterUnits="userSpaceOnUse">
+<feGaussianBlur stdDeviation="6"/>
+<feColorMatrix values="0 0 0 0 0.83 0 0 0 0 0.69 0 0 0 0 0.22 0 0 0 1 0"/>
+<feBlend mode="normal" in2="SourceGraphic"/>
+</filter>
+</defs>
+</svg>

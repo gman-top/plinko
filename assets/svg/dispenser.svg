@@ -1,0 +1,13 @@
+<svg width="188" height="188" viewBox="0 0 188 188" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#g)">
+<circle cx="94" cy="94" r="74" fill="#D4AF37"/>
+<circle cx="94" cy="94" r="74.5" stroke="white" stroke-width="0.95"/>
+</g>
+<defs>
+<filter id="g" x="0" y="0" width="188" height="188" filterUnits="userSpaceOnUse">
+<feGaussianBlur stdDeviation="6"/>
+<feColorMatrix values="0 0 0 0 0.83 0 0 0 0 0.69 0 0 0 0 0.22 0 0 0 1 0"/>
+<feBlend in="SourceGraphic"/>
+</filter>
+</defs>
+</svg>
