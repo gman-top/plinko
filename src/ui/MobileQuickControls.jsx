@@ -53,7 +53,13 @@ export default function MobileQuickControls() {
         <div className="mq-arrow l" onClick={() => cycleRisk(-1)} />
         <div className="mq-mid">
           <div className="mq-lbl">RISK</div>
-          <div className="mq-val" style={{ color: riskColor }}>{risk[0]}</div>
+          <div
+            className="mq-risk-icon"
+            style={{
+              backgroundColor: riskColor,
+              filter: `drop-shadow(0 0 6px ${riskColor})`,
+            }}
+          />
         </div>
         <div className="mq-arrow r" onClick={() => cycleRisk(+1)} />
       </div>

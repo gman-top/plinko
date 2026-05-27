@@ -136,10 +136,8 @@ body { position: fixed; inset: 0; }
 }
 .legend .banner {
   display: flex; align-items: center; gap: 18px;
-  padding: 7px 22px;
-  background: linear-gradient(180deg, rgba(15, 11, 7, .88), rgba(5, 4, 4, .92));
-  border: 1px solid rgba(212, 175, 55, 0.65);
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  padding: 8px 22px 9px 30px;
+  background: url('/assets/svg/left-rectangle.svg') center/100% 100% no-repeat;
   filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.28));
 }
 .legend .lb {
@@ -448,6 +446,14 @@ body { position: fixed; inset: 0; }
   color: var(--goldHi);
   letter-spacing: 0.5px;
   text-shadow: 0 0 6px rgba(255,224,138,0.4);
+}
+.mobileQuick .mq-risk-icon {
+  width: 20px; height: 20px;
+  mask-image: url('/assets/svg/risk-flame.svg');
+  -webkit-mask-image: url('/assets/svg/risk-flame.svg');
+  mask-size: contain; -webkit-mask-size: contain;
+  mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat;
+  mask-position: center; -webkit-mask-position: center;
 }
 
 /* ===================================================================
