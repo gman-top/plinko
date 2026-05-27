@@ -65,13 +65,16 @@ body { position: fixed; inset: 0; }
   height: 200px;
   z-index: 3;
 }
-.bottomArea.shake { animation: shake .55s linear; }
-@keyframes shake {
-  0%, 100% { transform: translate(0, 0); }
-  20% { transform: translate(-5px, -3px); }
-  40% { transform: translate(6px, 3px); }
-  60% { transform: translate(-4px, 4px); }
-  80% { transform: translate(4px, -4px); }
+#stage.bigShake { animation: bigShake .65s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes bigShake {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  8%       { transform: translate3d(-10px, -6px, 0) rotate(-0.35deg); }
+  18%      { transform: translate3d(12px,  4px, 0) rotate( 0.4deg); }
+  30%      { transform: translate3d(-8px,  7px, 0) rotate(-0.3deg); }
+  42%      { transform: translate3d(9px,  -8px, 0) rotate( 0.25deg); }
+  56%      { transform: translate3d(-6px,  3px, 0) rotate(-0.2deg); }
+  70%      { transform: translate3d(5px,  -3px, 0) rotate( 0.15deg); }
+  84%      { transform: translate3d(-3px,  2px, 0) rotate(-0.08deg); }
 }
 
 /* ===== TOP LEFT — LOGO ===== */
@@ -411,11 +414,10 @@ body { position: fixed; inset: 0; }
 .mobileQuick .mq {
   flex: 1;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 8px;
-  background: linear-gradient(180deg, rgba(15,11,7,.9), rgba(5,4,4,.95));
-  border: 1px solid rgba(212,175,55,0.55);
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  filter: drop-shadow(0 0 4px rgba(212,175,55,0.2));
+  padding: 0 10px;
+  background: url('/assets/svg/btn-bg.svg') no-repeat;
+  background-size: 100% 100%;
+  filter: drop-shadow(0 0 4px rgba(212,175,55,0.25));
 }
 .mobileQuick .mq-arrow {
   width: 16px; height: 18px;
@@ -638,4 +640,232 @@ body { position: fixed; inset: 0; }
   0%   { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
   15%  { transform: translate(-50%, -12px) scale(1.25); opacity: 1; }
   100% { transform: translate(-50%, -110px) scale(0.9); opacity: 0; }
+}
+
+/* ===================================================================
+ * INTRO SCREEN — loading + how-to-play (AIGO Studios)
+ * =================================================================== */
+.intro {
+  position: fixed; inset: 0;
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 50% 40%, #1a1206 0%, #050404 70%);
+  overflow: hidden;
+  animation: introFadeIn .4s ease-out;
+}
+.intro.done { animation: introFadeOut .5s ease-in forwards; pointer-events: none; }
+@keyframes introFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes introFadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
+
+.introBg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(212,175,55,.18) 0%, transparent 40%),
+    radial-gradient(circle at 80% 60%, rgba(255,140,66,.12) 0%, transparent 45%),
+    radial-gradient(circle at 50% 90%, rgba(185,70,255,.10) 0%, transparent 50%);
+  pointer-events: none;
+}
+.introGlow {
+  position: absolute; inset: -20%;
+  background: conic-gradient(from 0deg,
+    transparent 0%, rgba(212,175,55,.08) 25%, transparent 50%,
+    rgba(255,140,66,.06) 75%, transparent 100%);
+  filter: blur(60px);
+  animation: introSpin 24s linear infinite;
+  pointer-events: none;
+}
+@keyframes introSpin { to { transform: rotate(360deg); } }
+
+/* ----- Phase 1: Loading ----- */
+.introLoad {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 22px;
+  animation: introPop .6s cubic-bezier(.2,1.2,.3,1.1);
+}
+@keyframes introPop { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.aigoMark {
+  display: flex; gap: 14px;
+  margin-bottom: 4px;
+}
+.aigoDot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--goldLite) 0%, var(--gold) 50%, var(--goldDeep) 100%);
+  box-shadow: 0 0 16px rgba(212,175,55,.6);
+  animation: aigoBounce 1.2s ease-in-out infinite;
+}
+.aigoDot.a { animation-delay: 0s; }
+.aigoDot.b { animation-delay: .15s; background: radial-gradient(circle at 35% 30%, #fff 0%, var(--wildHi) 45%, var(--wild) 100%); box-shadow: 0 0 16px rgba(255,140,66,.6); }
+.aigoDot.c { animation-delay: .3s; background: radial-gradient(circle at 35% 30%, #fff 0%, var(--purpleHi) 45%, var(--purple) 100%); box-shadow: 0 0 16px rgba(185,70,255,.6); }
+@keyframes aigoBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+.aigoName {
+  font-family: 'Audiowide', 'Inter', sans-serif;
+  font-size: 36px; letter-spacing: 8px;
+  color: var(--goldHi);
+  text-shadow: 0 0 18px rgba(255,224,138,.45);
+}
+.aigoName span {
+  color: var(--cream);
+  text-shadow: 0 0 12px rgba(248,233,198,.3);
+  margin-left: 6px;
+  font-weight: 300;
+  letter-spacing: 6px;
+}
+
+.loadBar {
+  width: 260px; height: 4px;
+  background: rgba(212,175,55,.15);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.loadFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--goldHi), var(--goldLite));
+  box-shadow: 0 0 12px rgba(212,175,55,.7);
+  transition: width 0.05s linear;
+}
+.loadLbl {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 3px;
+  color: var(--textDim);
+  text-transform: uppercase;
+}
+
+/* ----- Phase 2: How to Play ----- */
+.introHowto {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 32px;
+  padding: 40px 24px;
+  max-width: 960px;
+  width: 100%;
+  animation: introPop .55s cubic-bezier(.2,1.2,.3,1.1);
+}
+
+.introLogoBig {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.introLogoLine {
+  font-family: 'Audiowide', 'Inter', sans-serif;
+  font-size: clamp(46px, 8vw, 78px);
+  letter-spacing: clamp(6px, 1.2vw, 14px);
+  background: linear-gradient(180deg, var(--goldLite) 0%, var(--goldHi) 40%, var(--gold) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 24px rgba(212,175,55,.5));
+  line-height: 1;
+}
+.introLogoSub {
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(20px, 3vw, 30px);
+  letter-spacing: clamp(8px, 1.5vw, 18px);
+  color: var(--wildHi);
+  text-shadow: 0 0 18px rgba(255,140,66,.55);
+}
+
+.howCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+.howCard {
+  position: relative;
+  padding: 22px 18px 18px;
+  background: linear-gradient(180deg, rgba(28,20,11,.85), rgba(11,8,5,.92));
+  border: 1px solid rgba(212,175,55,.45);
+  border-radius: 4px;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 14px);
+  display: flex; flex-direction: column;
+  gap: 8px;
+}
+.howCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(212,175,55,.08) 0%, transparent 40%);
+  pointer-events: none;
+}
+.howNum {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 22px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  opacity: 0.55;
+}
+.howTitle {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2.5px;
+  color: var(--goldHi);
+  text-shadow: 0 0 10px rgba(255,224,138,.3);
+}
+.howText {
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--cream);
+  opacity: 0.85;
+}
+
+.introStart {
+  position: relative;
+  margin-top: 8px;
+  padding: 18px 56px;
+  background: linear-gradient(180deg, var(--gold) 0%, #B8860B 100%);
+  border: none;
+  border-radius: 4px;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 14px);
+  font-family: 'Audiowide', sans-serif;
+  font-size: 18px;
+  letter-spacing: 5px;
+  color: #1A0F03;
+  text-shadow: 0 1px 2px rgba(255,246,216,.4);
+  cursor: pointer;
+  box-shadow: 0 0 28px rgba(212,175,55,.55);
+  transition: transform .12s ease, box-shadow .2s ease;
+  animation: startPulse 2.2s ease-in-out infinite;
+}
+.introStart:hover  { transform: translateY(-2px) scale(1.03); box-shadow: 0 0 36px rgba(255,224,138,.7); }
+.introStart:active { transform: translateY(0) scale(0.98); }
+@keyframes startPulse {
+  0%, 100% { box-shadow: 0 0 28px rgba(212,175,55,.55); }
+  50%      { box-shadow: 0 0 40px rgba(255,224,138,.8); }
+}
+
+.introFoot {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 5px;
+  color: var(--textDim);
+  text-transform: uppercase;
+}
+.introFoot .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 6px var(--gold);
+}
+
+/* Intro responsive — cards stack on mobile */
+@media (max-width: 768px) {
+  .howCards { grid-template-columns: 1fr; gap: 10px; }
+  .howCard { padding: 16px 14px 14px; }
+  .howNum { font-size: 18px; }
+  .howTitle { font-size: 11px; letter-spacing: 2px; }
+  .howText { font-size: 11.5px; }
+  .introHowto { gap: 22px; padding: 24px 16px; }
+  .introStart { padding: 14px 36px; font-size: 14px; letter-spacing: 4px; }
+  .aigoName { font-size: 26px; letter-spacing: 6px; }
+  .loadBar { width: 200px; }
 }

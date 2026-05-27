@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { useGame } from '../state/gameStore.js';
 import { rollBallType } from '../state/config.js';
+import * as Sounds from '../audio/sounds.js';
 
 /**
  * Drops one or more balls. The Scene component owns physics, so we
@@ -36,6 +37,7 @@ export default function PlayButton() {
   }, [balance, cost, chargeBet, setCinematic]);
 
   const click = useCallback(() => {
+    Sounds.playClick();
     for (let i = 0; i < ballsAmount; i++) {
       setTimeout(dropOne, i * 220);
     }

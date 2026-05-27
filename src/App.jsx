@@ -12,6 +12,7 @@ import Cinematic from './ui/Cinematic.jsx';
 import FloatNumbers from './ui/FloatNumbers.jsx';
 import MobileMenu from './ui/MobileMenu.jsx';
 import MobileQuickControls from './ui/MobileQuickControls.jsx';
+import IntroScreen from './ui/IntroScreen.jsx';
 
 /**
  * Full-viewport flex layout — no fixed 1440x1024 frame.
@@ -20,22 +21,22 @@ import MobileQuickControls from './ui/MobileQuickControls.jsx';
  *     .bottomArea  fixed-height row with PLAY + flanking controls
  */
 export default function App() {
-  const bottomRef = useRef(null);
+  const stageRef = useRef(null);
 
-  // Screen shake (dispatched by Scene on big wins)
+  // Big-win shake: shakes the WHOLE stage (board + bottom + UI)
   useEffect(() => {
     const onShake = () => {
-      if (!bottomRef.current) return;
-      bottomRef.current.classList.remove('shake');
-      void bottomRef.current.offsetWidth;
-      bottomRef.current.classList.add('shake');
+      if (!stageRef.current) return;
+      stageRef.current.classList.remove('bigShake');
+      void stageRef.current.offsetWidth;
+      stageRef.current.classList.add('bigShake');
     };
     window.addEventListener('plinko-shake', onShake);
     return () => window.removeEventListener('plinko-shake', onShake);
   }, []);
 
   return (
-    <div id="stage">
+    <div id="stage" ref={stageRef}>
       <div className="boardArea">
         <Scene />
         <FloatNumbers />
@@ -47,7 +48,7 @@ export default function App() {
           <RightControls />
         </div>
       </div>
-      <div className="bottomArea" ref={bottomRef}>
+      <div className="bottomArea">
         <MobileQuickControls />
         <WinBar />
         <div className="desktopOnly">
@@ -58,6 +59,7 @@ export default function App() {
       </div>
       <MobileMenu />
       <Cinematic />
+      <IntroScreen />
     </div>
   );
 }

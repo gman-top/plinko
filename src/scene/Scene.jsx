@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useGame } from '../state/gameStore.js';
 import { BALL_TYPES } from '../state/config.js';
+import * as Sounds from '../audio/sounds.js';
 
 /**
  * PLINKO GONE COSMIC — single-canvas re-interpretation.
@@ -288,6 +289,7 @@ export default function Scene() {
       bonusMult: 1,
       hitMultStars: new Set(),
     });
+    Sounds.playDrop();
   }
 
   // ===== Dispenser physics =====
@@ -506,6 +508,7 @@ export default function Scene() {
             b.vx += (Math.random() - 0.5) * 28;
             p.lastHit = performance.now();
             sparkBurst(p.x, p.y, '#FFE695', 4);
+            Sounds.playPeg();
           }
         }
         // Multiplier-star pass-through detection
@@ -569,6 +572,11 @@ export default function Scene() {
         if (finalMult >= 5) {
           screenShake();
           supernova(sl[best].x + sl[best].w / 2, sl[best].y);
+          Sounds.playBigWin();
+        } else if (finalMult >= 1.5) {
+          Sounds.playWin();
+        } else if (profit > 0) {
+          Sounds.playCoin();
         }
       }
     }

@@ -1,5 +1,17 @@
 import { create } from 'zustand';
 import { MULT_TABLE } from './config.js';
+import * as Sounds from '../audio/sounds.js';
+
+const LS_SOUND = 'plinko-sound-v1';
+const LS_INTRO = 'plinko-intro-v1';
+const initialSoundOn = (() => {
+  try { return localStorage.getItem(LS_SOUND) !== '0'; } catch { return true; }
+})();
+const initialIntroPhase = (() => {
+  try { return localStorage.getItem(LS_INTRO) === '1' ? 'done' : 'loading'; }
+  catch { return 'loading'; }
+})();
+Sounds.setEnabled(initialSoundOn);
 
 // === Central game store (zustand) ===
 // Keeps balance, bet, risk, rows, features, history, last win.
@@ -21,9 +33,10 @@ export const useGame = create((set, get) => ({
   lastWin: null,        // { profit, mult, type, slotIndex } | null
   streak: 0,
   lastWinTime: 0,
-  soundOn: false,
+  soundOn: initialSoundOn,
   cinematic: null,      // { type: 'jackpot' | 'wild' | ... }
   menuOpen: false,      // mobile bottom drawer visibility
+  introPhase: initialIntroPhase, // 'loading' | 'howto' | 'done'
 
   // --- derived ---
   cost: () => {
@@ -51,9 +64,20 @@ export const useGame = create((set, get) => ({
   setAuto:  (v) => set({ auto: Math.max(1, Math.min(100, v)) }),
   setBalls: (v) => set({ ballsAmount: Math.max(1, Math.min(10, v)) }),
   toggleFeature: (k) => set(s => ({ features: { ...s.features, [k]: !s.features[k] } })),
-  toggleSound: () => set(s => ({ soundOn: !s.soundOn })),
+  toggleSound: () => set(s => {
+    const next = !s.soundOn;
+    Sounds.setEnabled(next);
+    try { localStorage.setItem(LS_SOUND, next ? '1' : '0'); } catch {}
+    return { soundOn: next };
+  }),
   toggleMenu:  () => set(s => ({ menuOpen: !s.menuOpen })),
   closeMenu:   () => set({ menuOpen: false }),
+  setIntroPhase: (p) => {
+    if (p === 'done') {
+      try { localStorage.setItem(LS_INTRO, '1'); } catch {}
+    }
+    set({ introPhase: p });
+  },
 
   setCinematic: (cin) => set({ cinematic: cin }),
 

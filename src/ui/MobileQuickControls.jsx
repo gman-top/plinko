@@ -1,5 +1,6 @@
 import React from 'react';
 import { useGame } from '../state/gameStore.js';
+import * as Sounds from '../audio/sounds.js';
 
 const ROWS_OPTS = [8, 10, 12, 14, 16];
 const RISKS = ['LOW', 'MEDIUM', 'HIGH'];
@@ -22,16 +23,18 @@ export default function MobileQuickControls() {
   const setBet  = useGame(s => s.setBet);
 
   const cycleRows = (dir) => {
+    Sounds.playClick();
     const i = ROWS_OPTS.indexOf(rows);
     const ni = Math.max(0, Math.min(ROWS_OPTS.length - 1, i + dir));
     setRows(ROWS_OPTS[ni]);
   };
   const cycleRisk = (dir) => {
+    Sounds.playClick();
     const i = RISKS.indexOf(risk);
     const ni = ((i + dir) % RISKS.length + RISKS.length) % RISKS.length;
     setRisk(RISKS[ni]);
   };
-  const stepBet = (dir) => setBet(bet + dir * BET_STEP);
+  const stepBet = (dir) => { Sounds.playClick(); setBet(bet + dir * BET_STEP); };
 
   const riskColor =
     risk === 'HIGH' ? 'var(--wildHi)' :
