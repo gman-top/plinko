@@ -1,0 +1,14 @@
+<svg width="198" height="198" viewBox="0 0 198 198" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<filter id="ringGlow" x="0" y="0" width="198" height="198" filterUnits="userSpaceOnUse">
+<feGaussianBlur stdDeviation="6"/>
+<feColorMatrix values="0 0 0 0 0.83 0 0 0 0 0.69 0 0 0 0 0.22 0 0 0 1 0"/>
+<feBlend in="SourceGraphic"/>
+</filter>
+</defs>
+<g filter="url(#ringGlow)">
+<ellipse cx="99" cy="99" rx="79.8" ry="80.3" stroke="#FFF2C7" stroke-width="1.5" fill="none"/>
+<ellipse cx="99" cy="99" rx="68" ry="68" stroke="#FFE695" stroke-width="1" fill="none" opacity="0.7"/>
+<ellipse cx="99" cy="99" rx="56" ry="56" stroke="#D4AF37" stroke-width="0.8" fill="none" opacity="0.5"/>
+</g>
+</svg>

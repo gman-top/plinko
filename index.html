@@ -51,12 +51,12 @@ body{position:fixed;inset:0}
 #boardWrap{position:absolute;left:50%;top:140px;transform:translateX(-50%);width:560px;height:700px;z-index:5;pointer-events:auto}
 #board{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:2}
 
-/* Triangle diagonal SVGs (LINES on the sides) */
-.triLine{position:absolute;width:227px;height:485px;pointer-events:none;z-index:1;
+/* Triangle diagonal SVGs (LINES on the sides) — Vector 10 from Figma, mirrored */
+.triLine{position:absolute;width:195px;height:470px;pointer-events:none;z-index:1;
   background:url('assets/svg/tri-line.svg') no-repeat;background-size:100% 100%;
-  filter:drop-shadow(0 0 12px rgba(212,123,55,.45))}
-.triLine.left{left:50%;top:135px;transform:translateX(-50%) translateX(-186px)}
-.triLine.right{left:50%;top:135px;transform:translateX(-50%) translateX(186px) scaleX(-1)}
+  filter:drop-shadow(0 0 14px rgba(212,123,55,.55))}
+.triLine.left{top:200px;left:calc(50% - 195px)}
+.triLine.right{top:200px;left:50%;transform:scaleX(-1);transform-origin:left center}
 /* Animated sweep along the lines */
 .triLine::after{content:'';position:absolute;inset:0;
   background:url('assets/svg/tri-line.svg') no-repeat;background-size:100% 100%;
@@ -67,16 +67,23 @@ body{position:fixed;inset:0}
   filter:drop-shadow(0 0 14px #FFE695);animation:triSweep 3.6s linear infinite}
 @keyframes triSweep{0%{-webkit-mask-position:0 -120%;mask-position:0 -120%}100%{-webkit-mask-position:0 220%;mask-position:0 220%}}
 
-/* Dispenser at top of board */
-.dispenser{position:absolute;left:50%;top:90px;transform:translate(-50%,-50%);width:100px;height:100px;z-index:3;
-  background:url('assets/svg/dispenser.svg') center/contain no-repeat;
-  filter:drop-shadow(0 0 18px rgba(255,224,138,.85)) drop-shadow(0 0 36px rgba(212,175,55,.5));
-  animation:dispGlow 2.2s ease-in-out infinite alternate}
-@keyframes dispGlow{from{filter:drop-shadow(0 0 14px rgba(255,224,138,.7)) drop-shadow(0 0 30px rgba(212,175,55,.4))}
-  to{filter:drop-shadow(0 0 24px rgba(255,224,138,1)) drop-shadow(0 0 50px rgba(212,175,55,.7))}}
-.dispenser::after{content:'';position:absolute;inset:18%;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%, #FFE695, #5C3F08);
-  box-shadow:inset 0 0 12px rgba(0,0,0,.5)}
+/* Dispenser at top of board — Figma asset stack */
+.dispenser{position:absolute;left:50%;top:80px;transform:translate(-50%,-50%);width:130px;height:130px;z-index:4;pointer-events:none}
+.dispenser .ring{position:absolute;inset:-30px;
+  background:url('assets/svg/dispenser-ring.svg') center/contain no-repeat;
+  filter:drop-shadow(0 0 14px rgba(255,224,138,.7));
+  animation:ringPulse 2.4s ease-in-out infinite alternate}
+@keyframes ringPulse{from{transform:scale(.95);opacity:.7}to{transform:scale(1.05);opacity:1}}
+.dispenser .balls{position:absolute;inset:14%;
+  background:url('assets/svg/dispenser-balls.svg') center/contain no-repeat;
+  filter:drop-shadow(0 0 8px rgba(255,167,71,.6))}
+.dispenser .glow{position:absolute;inset:-50%;border-radius:50%;
+  background:radial-gradient(circle, rgba(255,224,138,.3) 0%, transparent 60%);
+  animation:dispGlow 3s ease-in-out infinite alternate}
+@keyframes dispGlow{from{opacity:.5}to{opacity:1}}
+.dispenser .slot{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:34px;height:8px;border-radius:2px;
+  background:linear-gradient(180deg, #050404, #1A140C);
+  border:1px solid rgba(212,175,55,.7);box-shadow:0 0 6px rgba(212,175,55,.5),inset 0 0 4px #000}
 
 /* Inline WIN bar — uses Figma's win-bar SVG */
 .winBar{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);width:360px;height:64px;z-index:4;
@@ -97,6 +104,25 @@ body{position:fixed;inset:0}
 .floatNum{position:absolute;pointer-events:none;font-family:'Cinzel',serif;font-weight:800;font-size:26px;
   text-shadow:0 0 12px var(--fnGlow);color:var(--fnCol);animation:floatUp 1.5s ease-out forwards;z-index:8}
 @keyframes floatUp{0%{transform:translate(-50%,0) scale(.4);opacity:0}15%{transform:translate(-50%,-12px) scale(1.25);opacity:1}100%{transform:translate(-50%,-110px) scale(.9);opacity:0}}
+
+/* Multiplier badges columns — recent wins shown as orange ball badges */
+.multCol{position:absolute;top:200px;display:flex;flex-direction:column;gap:6px;z-index:3;pointer-events:none}
+.multCol.left{left:50%;transform:translateX(-300px)}
+.multCol.right{left:50%;transform:translateX(228px)}
+.multBadge{display:flex;align-items:center;gap:6px;padding:2px 8px 2px 2px;
+  background:linear-gradient(90deg, rgba(15,11,7,.85), rgba(5,4,4,.6));
+  border:1px solid rgba(212,175,55,.5);
+  clip-path:polygon(12px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  height:23px;animation:badgeIn .4s cubic-bezier(.2,1.2,.3,1.1)}
+@keyframes badgeIn{from{opacity:0;transform:translateX(-10px) scale(.5)}to{opacity:1;transform:translateX(0) scale(1)}}
+.multBadge .b{width:18px;height:18px;background:url('assets/svg/mult-ball.svg') center/contain no-repeat;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(255,167,71,.6))}
+.multBadge .t{font-family:'Inter';font-size:11px;font-weight:700;color:#fff;letter-spacing:.5px;text-shadow:0 0 4px rgba(0,0,0,.6)}
+.multBadge.big{border-color:#FFB347;box-shadow:0 0 8px rgba(255,107,26,.4)}
+.multBadge.big .t{color:#FFB347;text-shadow:0 0 6px rgba(255,107,26,.7)}
+.multBadge.mega{border-color:#FF2D2D;box-shadow:0 0 12px rgba(255,45,45,.5)}
+.multBadge.mega .t{color:#FF8C42;text-shadow:0 0 8px rgba(255,45,45,.8)}
+.multBadge.loss{opacity:.5}
+.multBadge.loss .t{color:#8A7A5E}
 
 /* === CONTROLS — using SVG backgrounds === */
 .panelWrap{position:absolute}
@@ -273,8 +299,17 @@ body{position:fixed;inset:0}
 <div class="triLine left"></div>
 <div class="triLine right"></div>
 
-<!-- Dispenser (Ellipse 7 SVG) -->
-<div class="dispenser"></div>
+<!-- Multiplier badge columns (recent landings) -->
+<div class="multCol left" id="multColLeft"></div>
+<div class="multCol right" id="multColRight"></div>
+
+<!-- Dispenser (Figma SVGs: ring + balls cluster) -->
+<div class="dispenser">
+  <div class="glow"></div>
+  <div class="ring"></div>
+  <div class="balls"></div>
+  <div class="slot"></div>
+</div>
 
 <!-- Board canvas -->
 <div id="boardWrap">
@@ -435,7 +470,7 @@ const TBL={
   HIGH:{8:[29,4,1.5,.3,.2,.3,1.5,4,29], 10:[76,10,3,.9,.3,.2,.3,.9,3,10,76], 12:[128,24,5,2,.7,.3,.2,.3,.7,2,5,24,128], 14:[256,43,7,3,1,.5,.2,.2,.2,.5,1,3,7,43,256], 16:[1000,130,26,9,4,1.4,.5,.3,.2,.3,.5,1.4,4,9,26,130,1000]}
 };
 
-const board={c:$('#board'), ctx:null, W:560, H:700, pegs:[], slots:[], cx:280, topY:90, sp:34};
+const board={c:$('#board'), ctx:null, W:560, H:700, pegs:[], slots:[], cx:280, topY:130, sp:34};
 function setupCanvas(c){
   const dpr=Math.min(window.devicePixelRatio||1,2.5);
   const w=c.width,h=c.height;
@@ -807,7 +842,8 @@ function drop(free=false){
   updateHUD();
 }
 function spawn(type, c){
-  const b=new Ball(board.cx+rand(-2,2), 70, type, c);
+  // spawn from the dispenser slot at top (HTML element is centered at y=80, slot bottom ~95)
+  const b=new Ball(board.cx+rand(-2,2), 95, type, c);
   balls.push(b);
 }
 function cinematic(type, after){
@@ -841,6 +877,28 @@ function updateStats(){
     const ncol=net>=0?(h.m>=10?'#FFB347':h.m>=2?'#FFE695':'#3FCB7C'):'#8A7A5E';
     r.innerHTML=`<div>${h.time}</div><div>${h.bet.toFixed(2)} ETH</div><div>${h.pay.toFixed(2)} ETH</div><div class="pf" style="color:${ncol}">${net>=0?'+':''}${net.toFixed(2)} ETH</div>`;
     box.appendChild(r);
+  }
+  updateMultBadges();
+}
+
+function updateMultBadges(){
+  // Build orange-ball badges on left + right sides showing recent multipliers
+  const colL=$('#multColLeft'), colR=$('#multColRight');
+  colL.innerHTML=''; colR.innerHTML='';
+  const recent = state.history.slice(0,12);
+  // Split: alternate badges between L and R (newest on top of each)
+  for (let i=0;i<recent.length;i++){
+    const h=recent[i];
+    const m=h.m;
+    let cls='';
+    if (m>=50) cls='mega';
+    else if (m>=10) cls='big';
+    else if (m<1) cls='loss';
+    const label = m>=10 ? Math.round(m)+'x' : m.toFixed(1).replace('.0','')+'x';
+    const el=document.createElement('div');
+    el.className='multBadge '+cls;
+    el.innerHTML=`<div class="b"></div><div class="t">${label}</div>`;
+    (i%2===0 ? colL : colR).appendChild(el);
   }
 }
 
