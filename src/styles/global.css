@@ -291,30 +291,39 @@ body { position: fixed; inset: 0; }
 }
 @keyframes playSweep { from { background-position: 200% 0; } to { background-position: -100% 0; } }
 
-/* ===== WIN BAR ===== */
+/* ===== WIN BAR =====
+ * The win-bar SVG is a slanted parallelogram banner — the LEFT side
+ * slants down-left, the RIGHT side too, so the usable interior at the
+ * vertical centre is narrower than the outer box. Width bumped to
+ * 480px + gap 22 so the text never crowds those slanted inner walls.
+ * Vertical breathing room raised from 60→64px.
+ */
 .winBar {
   position: absolute;
   left: 50%; top: -50px;
   transform: translateX(-50%);
-  width: 400px; height: 60px;
+  width: 480px; height: 64px;
   z-index: 12;
   background: url('/assets/svg/win-bar.svg') center/100% 100% no-repeat;
   filter: drop-shadow(0 0 18px rgba(0, 169, 145, 0.45));
   display: flex; align-items: center; justify-content: center;
-  gap: 18px;
+  gap: 22px;
+  padding: 0 56px;             /* keep text away from the slanted inner walls */
   opacity: 0; pointer-events: none;
   transition: opacity .25s, filter .25s;
 }
 .winBar.on { opacity: 1; filter: drop-shadow(0 0 28px rgba(255, 224, 138, 0.85)); }
 .winBar .lbl {
   font-family: 'Inter', sans-serif;
-  font-size: 11px; letter-spacing: 4px;
+  font-size: 11px; letter-spacing: 5px;
   color: var(--goldHi); font-weight: 600;
   text-transform: uppercase; opacity: 0.85;
+  white-space: nowrap;
 }
 .winBar .num {
   font-family: 'Audiowide', 'Orbitron', 'Inter', sans-serif;
-  font-size: 30px; letter-spacing: 2px; line-height: 1;
+  font-size: 27px; letter-spacing: 1.6px; line-height: 1;
+  white-space: nowrap;
   background: linear-gradient(180deg, var(--goldLite) 0%, var(--goldHi) 45%, var(--gold) 100%);
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
@@ -519,12 +528,14 @@ body { position: fixed; inset: 0; }
   }
   .playWrap .playText { font-size: 30px; letter-spacing: 4px; }
   .winBar {
-    width: clamp(220px, 86vw, 360px);
-    height: 52px;
-    top: -38px;
+    width: clamp(260px, 92vw, 420px);
+    height: 56px;
+    top: -40px;
+    gap: 16px;
+    padding: 0 40px;
   }
-  .winBar .lbl { font-size: 10px; letter-spacing: 3px; }
-  .winBar .num { font-size: 23px; letter-spacing: 1.5px; }
+  .winBar .lbl { font-size: 10px; letter-spacing: 4px; }
+  .winBar .num { font-size: 22px; letter-spacing: 1.2px; }
 
   /* Compact bottom info bar */
   .botbar {
@@ -544,8 +555,15 @@ body { position: fixed; inset: 0; }
   .bottomArea { height: 150px; }
   .playWrap { width: 120px; height: 120px; bottom: 14px; }
   .playWrap .playText { font-size: 26px; letter-spacing: 3px; }
-  .winBar { width: clamp(200px, 90vw, 320px); height: 48px; top: -32px; }
+  .winBar {
+    width: clamp(240px, 94vw, 360px);
+    height: 52px;
+    top: -36px;
+    gap: 14px;
+    padding: 0 32px;
+  }
   .winBar .num { font-size: 20px; }
+  .winBar .lbl { font-size: 9px; letter-spacing: 3px; }
 }
 
 /* Force drawer to never show on desktop */
