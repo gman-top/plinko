@@ -94,9 +94,9 @@ body{position:fixed;inset:0}
   background:linear-gradient(180deg, #050404, #1A140C);
   border:1px solid rgba(212,175,55,.7);box-shadow:0 0 6px rgba(212,175,55,.5),inset 0 0 4px #000}
 
-/* Inline WIN bar — uses Figma's win-bar SVG. Positioned ABOVE the PLAY
-   button so it visually crowns the controls area. */
-.winBar{position:absolute;left:50%;bottom:200px;transform:translateX(-50%);width:400px;height:68px;z-index:11;
+/* Inline WIN bar — Figma's win-bar SVG, sits BELOW the PLAY button
+   between it and the bottom info bar (SOUND/MENU/BALANCE/BET). */
+.winBar{position:absolute;left:50%;bottom:46px;transform:translateX(-50%);width:400px;height:60px;z-index:11;
   background:url('assets/svg/win-bar.svg') center/100% 100% no-repeat;
   filter:drop-shadow(0 0 14px rgba(0,169,145,.4));
   display:flex;align-items:center;justify-content:center;gap:18px;opacity:0;transition:opacity .25s,filter .25s;pointer-events:none}
@@ -112,8 +112,8 @@ body{position:fixed;inset:0}
 .winBar.loss .num{background:linear-gradient(180deg,#B8A380,#8A7A5E);-webkit-background-clip:text;background-clip:text;color:transparent;filter:none}
 @keyframes winPulse{0%{transform:scale(.5);opacity:0}45%{transform:scale(1.25);opacity:1}100%{transform:scale(1);opacity:1}}
 
-/* === TOP LEGEND BAR — the 6 multiplier-ball colors === */
-.topLegend{position:absolute;left:50%;top:155px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;z-index:6;pointer-events:none}
+/* === LEGEND BARS — the 6 multiplier-ball colors, on the right side === */
+.topLegend{position:absolute;right:60px;top:50px;display:flex;flex-direction:column;gap:8px;z-index:6;pointer-events:none}
 .legendBanner{display:flex;align-items:center;gap:18px;padding:6px 22px;
   background:linear-gradient(180deg, rgba(15,11,7,.85), rgba(5,4,4,.92));
   border:1px solid rgba(212,175,55,.7);
@@ -170,7 +170,7 @@ body{position:fixed;inset:0}
 .riskIcons .ri[data-risk="MEDIUM"].act{opacity:1;filter:drop-shadow(0 0 10px #FFE695);transform:scale(1.12)}
 .riskIcons .ri[data-risk="HIGH"].act{opacity:1;filter:drop-shadow(0 0 12px #FF6B1A);transform:scale(1.18)}
 
-.buyFeat{position:absolute;left:calc(50% - 215px);bottom:80px;width:131px}
+.buyFeat{position:absolute;left:calc(50% - 215px);bottom:140px;width:131px}
 .buyFeatIcons{height:42px;position:relative;display:flex;align-items:center;justify-content:space-around;padding:0 10px;cursor:pointer;
   background:url('assets/svg/btn-bg.svg') no-repeat;background-size:100% 100%;
   filter:drop-shadow(0 0 6px rgba(212,175,55,.25));transition:.2s}
@@ -181,12 +181,12 @@ body{position:fixed;inset:0}
 .buyFeatIcons .fi.blue.act{color:#9BC8FF;text-shadow:0 0 10px #4A9EFF}
 .buyFeatIcons .fi.wild.act{color:#FFB347;text-shadow:0 0 10px #FF6B1A}
 
-.ballsAmt{position:absolute;left:calc(50% - 215px);bottom:184px;width:131px}
-.betAmt{position:absolute;left:calc(50% + 85px);bottom:80px;width:157px}
-.autoCtrl{position:absolute;left:calc(50% + 85px);bottom:184px;width:131px}
+.ballsAmt{position:absolute;left:calc(50% - 215px);bottom:244px;width:131px}
+.betAmt{position:absolute;left:calc(50% + 85px);bottom:140px;width:157px}
+.autoCtrl{position:absolute;left:calc(50% + 85px);bottom:244px;width:131px}
 
 /* PLAY — Figma SVG button (gold ring + striped pattern) + "PLAY" text overlay */
-.playWrap{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);width:188px;height:188px;cursor:pointer;z-index:10;
+.playWrap{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);width:188px;height:188px;cursor:pointer;z-index:10;
   background:url('assets/svg/play-btn.svg') center/contain no-repeat;
   filter:drop-shadow(0 0 22px rgba(255,224,138,.7)) drop-shadow(0 0 50px rgba(212,175,55,.4));
   transition:transform .15s;display:grid;place-items:center}
