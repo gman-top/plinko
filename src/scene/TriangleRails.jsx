@@ -79,29 +79,16 @@ function Rail({ from, to, side }) {
 
   return (
     <group>
-      {/* The rail bar itself */}
+      {/* The rail bar itself — thin metallic gold tube */}
       <group position={mid.toArray()} quaternion={quaternion.toArray()}>
         <mesh castShadow>
-          <cylinderGeometry args={[0.04, 0.04, len, 12]} />
+          <cylinderGeometry args={[0.028, 0.028, len, 12]} />
           <meshStandardMaterial
-            color="#D47B37"
-            emissive="#D4AF37"
-            emissiveIntensity={0.9}
-            metalness={1}
-            roughness={0.25}
-          />
-        </mesh>
-        {/* Thin core highlight on top of the rail for that lit-gold-tube feel */}
-        <mesh position={[0.025, 0, 0]}>
-          <cylinderGeometry args={[0.012, 0.012, len * 0.96, 8]} />
-          <meshStandardMaterial
-            color="#FFF6D8"
+            color="#D4AF37"
             emissive="#FFE695"
-            emissiveIntensity={2.0}
+            emissiveIntensity={1.4}
             metalness={1}
-            roughness={0.05}
-            transparent
-            opacity={0.85}
+            roughness={0.2}
           />
         </mesh>
       </group>

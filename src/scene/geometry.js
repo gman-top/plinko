@@ -18,8 +18,8 @@ export function boardGeometry(rows) {
   const bottomPegs = topPegs + rows - 1;       // e.g. 14 for 12 rows
   const slotCount  = bottomPegs - 1;           // 13
   const sp         = 0.55;                     // peg spacing
-  const pegR       = 0.07;                     // peg radius (for collisions)
-  const ballR      = 0.13;                     // ball radius
+  const pegR       = 0.085;                    // peg radius (for collisions)
+  const ballR      = 0.17;                     // ball radius (visually larger)
 
   // Pyramid centred on (0, 0). Y axis: top = +pyramidHalfH, bottom = -pyramidHalfH
   const pyramidH       = (rows - 1) * sp;

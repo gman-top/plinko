@@ -23,8 +23,8 @@ export default function Pegs({ geometry }) {
 function Peg({ pos, r }) {
   const meshRef = useRef();
   const lastHit = useRef(-Infinity);
-  const baseEmissive = 0.45;
-  const hitEmissive  = 2.6;
+  const baseEmissive = 1.2;
+  const hitEmissive  = 4.0;
 
   // Lift the peg slightly forward (+z) so its highlight catches the
   // key light, then ride the emissive intensity for ~300ms after impact.
@@ -55,13 +55,23 @@ function Peg({ pos, r }) {
       }}
     >
       <BallCollider args={[r]} position={pos} />
+      {/* Outer halo glow plate — catches bloom for the "lit dot" look */}
+      <mesh position={pos}>
+        <sphereGeometry args={[r * 1.6, 16, 16]} />
+        <meshBasicMaterial
+          color="#FFB347"
+          transparent
+          opacity={0.18}
+          depthWrite={false}
+        />
+      </mesh>
       <mesh ref={meshRef} position={pos} castShadow>
         <sphereGeometry args={[r, 24, 24]} />
         <meshStandardMaterial
           color="#FFE695"
-          metalness={0.92}
-          roughness={0.18}
-          emissive="#FFB347"
+          metalness={0.85}
+          roughness={0.2}
+          emissive="#FFE695"
           emissiveIntensity={baseEmissive}
         />
       </mesh>
