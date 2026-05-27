@@ -340,7 +340,7 @@ body { position: fixed; inset: 0; }
   left: 0; right: 0; bottom: -6px;
   height: 36px;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 clamp(20px, 3vw, 64px);
+  padding: 0 clamp(28px, 4vw, 80px);
   font-size: 11px; color: var(--goldHi); letter-spacing: 1.5px;
   z-index: 11; pointer-events: none;
 }
@@ -353,8 +353,9 @@ body { position: fixed; inset: 0; }
 .botbar .it:hover { color: var(--goldLite); }
 .botbar .it .ic { width: 22px; height: 22px; background-size: contain; background-repeat: no-repeat; background-position: center; transition: filter .15s; }
 .botbar .it:hover .ic { filter: drop-shadow(0 0 8px var(--goldHi)); }
-.botbar .it .ic.s { background-image: url('/assets/svg/ic-sound.svg'); }
-.botbar .it .ic.m { background-image: url('/assets/svg/ic-menu.svg'); }
+.botbar .it .ic.s  { background-image: url('/assets/svg/ic-sound.svg'); }
+.botbar .it .ic.so { background-image: url('/assets/svg/ic-sound-off.svg'); opacity: 0.5; }
+.botbar .it .ic.m  { background-image: url('/assets/svg/ic-menu.svg'); }
 .botbar .it .ic.i {
   position: relative;
   border: 1.5px solid currentColor;
@@ -615,12 +616,12 @@ body { position: fixed; inset: 0; }
 
   /* Compact bottom info bar */
   .botbar {
-    bottom: 4px;
-    padding: 0 16px;
+    bottom: 8px;
+    padding: 0 22px;
     font-size: 9.5px;
     letter-spacing: 1px;
   }
-  .botbar .l, .botbar .r { gap: 14px; }
+  .botbar .l, .botbar .r { gap: 16px; }
   .botbar .it span:first-child { display: none; }   /* hide "BALANCE" / "BET AMOUNT" labels */
   .botbar .it .ic { width: 20px; height: 20px; }
   .botbar .v { font-size: 11px; }
@@ -780,29 +781,30 @@ body { position: fixed; inset: 0; }
 .howto {
   position: relative; z-index: 2;
   display: flex; flex-direction: column; align-items: center;
-  gap: 14px;
-  padding: 32px 24px 24px;
-  max-width: 560px;
+  gap: 10px;
+  padding: 28px 24px 22px;
+  max-width: 540px;
   width: 100%;
   animation: introPop .55s cubic-bezier(.2,1.2,.3,1.1);
 }
 
 .howtoLogoWrap {
-  width: 240px;
+  width: 200px;
   filter: drop-shadow(0 0 20px rgba(212,175,55,.45));
+  margin-bottom: -4px;
 }
 .howtoLogo { width: 100%; height: auto; display: block; }
 
 .maxWinBadge {
   display: flex; flex-direction: column; align-items: center;
-  gap: 2px;
-  padding: 6px 18px 10px;
+  gap: 1px;
+  padding: 5px 18px 8px;
   position: relative;
 }
 .maxWinBadge::before, .maxWinBadge::after {
   content: '';
   position: absolute; left: 50%;
-  width: 90px; height: 1px;
+  width: 70px; height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
   transform: translateX(-50%);
 }
@@ -810,27 +812,27 @@ body { position: fixed; inset: 0; }
 .maxWinBadge::after  { bottom: 0; }
 .maxWinTop {
   font-family: 'Audiowide', sans-serif;
-  font-size: 10px;
-  letter-spacing: 5px;
+  font-size: 9px;
+  letter-spacing: 4px;
   color: var(--goldHi);
   text-shadow: 0 0 8px rgba(255,224,138,.4);
 }
 .maxWinBig {
   font-family: 'Audiowide', sans-serif;
-  font-size: 32px; letter-spacing: 2px;
+  font-size: 26px; letter-spacing: 2px;
   background: linear-gradient(180deg, var(--goldLite) 0%, var(--goldHi) 45%, var(--gold) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 14px rgba(212,175,55,.5));
+  filter: drop-shadow(0 0 12px rgba(212,175,55,.5));
   line-height: 1;
 }
-.maxWinBig span { font-size: 22px; margin-left: 2px; }
+.maxWinBig span { font-size: 18px; margin-left: 2px; }
 
 .howtoStage {
   width: 100%;
-  height: 220px;
+  height: 190px;
   display: flex; align-items: center; justify-content: center;
-  margin: 4px 0 6px;
+  margin: 0;
 }
 .slide {
   width: 100%; height: 100%;
@@ -887,26 +889,28 @@ body { position: fixed; inset: 0; }
 /* Title + description block */
 .howtoTitle {
   font-family: 'Audiowide', sans-serif;
-  font-size: 18px; letter-spacing: 4px;
+  font-size: 16px; letter-spacing: 4px;
   color: var(--goldHi);
   text-align: center;
   text-shadow: 0 0 12px rgba(255,224,138,.4);
+  margin-top: 2px;
 }
 .howtoDesc {
   font-family: 'Inter', sans-serif;
-  font-size: 12px; line-height: 1.55;
+  font-size: 12.5px; line-height: 1.5;
   color: var(--cream);
-  opacity: 0.78;
+  opacity: 0.85;
   text-align: center;
-  max-width: 440px;
-  min-height: 38px;
+  max-width: 420px;
+  min-height: 36px;
 }
 
-/* Nav: arrows + dot indicator */
+/* Nav: arrows + dot indicator — combined row with the START button
+   feels cleaner than three separate rows */
 .howtoNav {
   display: flex; align-items: center; justify-content: center;
-  gap: 28px;
-  margin-top: 6px;
+  gap: 22px;
+  margin-top: 2px;
 }
 .introArrow {
   width: 28px; height: 28px;
@@ -940,32 +944,32 @@ body { position: fixed; inset: 0; }
 .introStart {
   position: relative;
   margin-top: 6px;
-  padding: 14px 44px;
+  padding: 13px 42px;
   background: linear-gradient(180deg, var(--goldHi) 0%, var(--gold) 100%);
   border: none;
   border-radius: 4px;
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 14px);
   font-family: 'Audiowide', sans-serif;
-  font-size: 17px; letter-spacing: 5px;
+  font-size: 16px; letter-spacing: 5px;
   color: #1A0F03;
   text-shadow: 0 1px 2px rgba(255,246,216,.4);
   cursor: pointer;
-  box-shadow: 0 0 26px rgba(212,175,55,.55);
+  box-shadow: 0 0 22px rgba(212,175,55,.5);
   transition: transform .12s ease, box-shadow .2s ease;
-  animation: startPulse 2.2s ease-in-out infinite;
+  animation: startPulse 2.6s ease-in-out infinite;
 }
-.introStart:hover  { transform: translateY(-2px) scale(1.03); box-shadow: 0 0 36px rgba(255,224,138,.75); }
+.introStart:hover  { transform: translateY(-2px) scale(1.03); box-shadow: 0 0 32px rgba(255,224,138,.7); }
 .introStart:active { transform: translateY(0) scale(0.98); }
 @keyframes startPulse {
-  0%, 100% { box-shadow: 0 0 26px rgba(212,175,55,.55); }
-  50%      { box-shadow: 0 0 38px rgba(255,224,138,.8); }
+  0%, 100% { box-shadow: 0 0 22px rgba(212,175,55,.5); }
+  50%      { box-shadow: 0 0 32px rgba(255,224,138,.72); }
 }
 
 .introFoot {
   display: flex; align-items: center; gap: 8px;
-  margin-top: 4px;
+  margin-top: 8px;
   font-family: 'Inter', sans-serif;
-  font-size: 10px; letter-spacing: 5px;
+  font-size: 9px; letter-spacing: 5px;
   color: var(--textDim);
   text-transform: uppercase;
 }

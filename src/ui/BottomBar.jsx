@@ -27,8 +27,8 @@ export default function BottomBar() {
   return (
     <div className="botbar">
       <div className="l">
-        <div className="it" onClick={toggleSound} style={{ color: soundOn ? '#3FCB7C' : undefined }}>
-          <span className="ic s" /> SOUND
+        <div className="it" onClick={() => { Sounds.playClick(); toggleSound(); }} title={soundOn ? 'Sound on' : 'Sound off'}>
+          <span className={`ic ${soundOn ? 's' : 'so'}`} /> SOUND
         </div>
         <div className="it" onClick={openHowTo} title="How to play">
           <span className="ic i" /> INFO
