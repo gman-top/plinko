@@ -738,113 +738,194 @@ body { position: fixed; inset: 0; }
   text-transform: uppercase;
 }
 
-/* ----- Phase 2: How to Play ----- */
-.introHowto {
+/* ----- Phase 2: How-to-play tutorial (4-slide carousel) ----- */
+.howto {
   position: relative; z-index: 2;
   display: flex; flex-direction: column; align-items: center;
-  gap: 32px;
-  padding: 40px 24px;
-  max-width: 960px;
+  gap: 14px;
+  padding: 32px 24px 24px;
+  max-width: 560px;
   width: 100%;
   animation: introPop .55s cubic-bezier(.2,1.2,.3,1.1);
 }
 
-.introLogoBig {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 4px;
-  margin-bottom: 8px;
+.howtoLogoWrap {
+  width: 240px;
+  filter: drop-shadow(0 0 20px rgba(212,175,55,.45));
 }
-.introLogoLine {
-  font-family: 'Audiowide', 'Inter', sans-serif;
-  font-size: clamp(46px, 8vw, 78px);
-  letter-spacing: clamp(6px, 1.2vw, 14px);
-  background: linear-gradient(180deg, var(--goldLite) 0%, var(--goldHi) 40%, var(--gold) 100%);
+.howtoLogo { width: 100%; height: auto; display: block; }
+
+.maxWinBadge {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px;
+  padding: 6px 18px 10px;
+  position: relative;
+}
+.maxWinBadge::before, .maxWinBadge::after {
+  content: '';
+  position: absolute; left: 50%;
+  width: 90px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  transform: translateX(-50%);
+}
+.maxWinBadge::before { top: 0; }
+.maxWinBadge::after  { bottom: 0; }
+.maxWinTop {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 10px;
+  letter-spacing: 5px;
+  color: var(--goldHi);
+  text-shadow: 0 0 8px rgba(255,224,138,.4);
+}
+.maxWinBig {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 32px; letter-spacing: 2px;
+  background: linear-gradient(180deg, var(--goldLite) 0%, var(--goldHi) 45%, var(--gold) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 24px rgba(212,175,55,.5));
+  filter: drop-shadow(0 0 14px rgba(212,175,55,.5));
   line-height: 1;
 }
-.introLogoSub {
-  font-family: 'Audiowide', sans-serif;
-  font-size: clamp(20px, 3vw, 30px);
-  letter-spacing: clamp(8px, 1.5vw, 18px);
-  color: var(--wildHi);
-  text-shadow: 0 0 18px rgba(255,140,66,.55);
-}
+.maxWinBig span { font-size: 22px; margin-left: 2px; }
 
-.howCards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+.howtoStage {
   width: 100%;
+  height: 220px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 4px 0 6px;
 }
-.howCard {
-  position: relative;
-  padding: 22px 18px 18px;
-  background: linear-gradient(180deg, rgba(28,20,11,.85), rgba(11,8,5,.92));
-  border: 1px solid rgba(212,175,55,.45);
-  border-radius: 4px;
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 14px);
-  display: flex; flex-direction: column;
-  gap: 8px;
+.slide {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  animation: slideIn .3s ease-out;
 }
-.howCard::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(212,175,55,.08) 0%, transparent 40%);
-  pointer-events: none;
-}
-.howNum {
-  font-family: 'Audiowide', sans-serif;
-  font-size: 22px;
-  color: var(--gold);
-  letter-spacing: 2px;
-  opacity: 0.55;
-}
-.howTitle {
-  font-family: 'Audiowide', sans-serif;
-  font-size: 13px;
-  letter-spacing: 2.5px;
-  color: var(--goldHi);
-  text-shadow: 0 0 10px rgba(255,224,138,.3);
-}
-.howText {
-  font-family: 'Inter', sans-serif;
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--cream);
-  opacity: 0.85;
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Slide 1: three triangle feature badges */
+.slideFeatures {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px;
+}
+.featBadge {
+  position: relative;
+  width: 92px; height: 90px;
+  display: flex; align-items: center; justify-content: center;
+  filter: drop-shadow(0 0 12px rgba(212,175,55,.35));
+}
+.featBadge.big {
+  width: 130px; height: 124px;
+  filter: drop-shadow(0 0 18px rgba(212,175,55,.6));
+}
+.featTri {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+.featIcon {
+  position: relative; z-index: 2;
+  width: 44%;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 8px;
+}
+.featBadge.big .featIcon { width: 50%; }
+.featIcon img { width: 100%; height: auto; display: block; }
+.featLbl {
+  position: absolute;
+  bottom: 10px; left: 0; right: 0;
+  text-align: center;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 9px; letter-spacing: 2px;
+  color: var(--goldHi);
+  text-shadow: 0 0 6px rgba(255,224,138,.4);
+  z-index: 2;
+}
+
+/* Slides 2-4: mini-board SVGs */
+.slideMini { width: 100%; height: 100%; padding: 4px 0; }
+.miniBoard { width: 100%; height: 100%; max-width: 340px; margin: 0 auto; display: block; }
+
+/* Title + description block */
+.howtoTitle {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 18px; letter-spacing: 4px;
+  color: var(--goldHi);
+  text-align: center;
+  text-shadow: 0 0 12px rgba(255,224,138,.4);
+}
+.howtoDesc {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; line-height: 1.55;
+  color: var(--cream);
+  opacity: 0.78;
+  text-align: center;
+  max-width: 440px;
+  min-height: 38px;
+}
+
+/* Nav: arrows + dot indicator */
+.howtoNav {
+  display: flex; align-items: center; justify-content: center;
+  gap: 28px;
+  margin-top: 6px;
+}
+.introArrow {
+  width: 28px; height: 28px;
+  background: none; border: none; cursor: pointer;
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  filter: drop-shadow(0 0 6px rgba(212,175,55,.45));
+  transition: transform .12s ease;
+  flex-shrink: 0;
+}
+.introArrow.l { background-image: url('/assets/svg/arrow-left.svg'); }
+.introArrow.r { background-image: url('/assets/svg/arrow-right.svg'); }
+.introArrow:hover  { transform: scale(1.15); }
+.introArrow:active { transform: scale(0.9); }
+.introDots {
+  display: flex; gap: 8px;
+}
+.introDot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(212,175,55,0.35);
+  cursor: pointer;
+  transition: background .2s, transform .2s;
+}
+.introDot.on {
+  background: var(--goldHi);
+  box-shadow: 0 0 8px var(--goldHi);
+  transform: scale(1.3);
+}
+
+/* START button — bigger, with our Figma chamfered shape */
 .introStart {
   position: relative;
-  margin-top: 8px;
-  padding: 18px 56px;
-  background: linear-gradient(180deg, var(--gold) 0%, #B8860B 100%);
+  margin-top: 6px;
+  padding: 14px 44px;
+  background: linear-gradient(180deg, var(--goldHi) 0%, var(--gold) 100%);
   border: none;
   border-radius: 4px;
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 14px);
   font-family: 'Audiowide', sans-serif;
-  font-size: 18px;
-  letter-spacing: 5px;
+  font-size: 17px; letter-spacing: 5px;
   color: #1A0F03;
   text-shadow: 0 1px 2px rgba(255,246,216,.4);
   cursor: pointer;
-  box-shadow: 0 0 28px rgba(212,175,55,.55);
+  box-shadow: 0 0 26px rgba(212,175,55,.55);
   transition: transform .12s ease, box-shadow .2s ease;
   animation: startPulse 2.2s ease-in-out infinite;
 }
-.introStart:hover  { transform: translateY(-2px) scale(1.03); box-shadow: 0 0 36px rgba(255,224,138,.7); }
+.introStart:hover  { transform: translateY(-2px) scale(1.03); box-shadow: 0 0 36px rgba(255,224,138,.75); }
 .introStart:active { transform: translateY(0) scale(0.98); }
 @keyframes startPulse {
-  0%, 100% { box-shadow: 0 0 28px rgba(212,175,55,.55); }
-  50%      { box-shadow: 0 0 40px rgba(255,224,138,.8); }
+  0%, 100% { box-shadow: 0 0 26px rgba(212,175,55,.55); }
+  50%      { box-shadow: 0 0 38px rgba(255,224,138,.8); }
 }
 
 .introFoot {
   display: flex; align-items: center; gap: 8px;
-  margin-top: 6px;
+  margin-top: 4px;
   font-family: 'Inter', sans-serif;
   font-size: 10px; letter-spacing: 5px;
   color: var(--textDim);
@@ -857,15 +938,26 @@ body { position: fixed; inset: 0; }
   box-shadow: 0 0 6px var(--gold);
 }
 
-/* Intro responsive — cards stack on mobile */
+/* Tutorial responsive */
 @media (max-width: 768px) {
-  .howCards { grid-template-columns: 1fr; gap: 10px; }
-  .howCard { padding: 16px 14px 14px; }
-  .howNum { font-size: 18px; }
-  .howTitle { font-size: 11px; letter-spacing: 2px; }
-  .howText { font-size: 11.5px; }
-  .introHowto { gap: 22px; padding: 24px 16px; }
-  .introStart { padding: 14px 36px; font-size: 14px; letter-spacing: 4px; }
+  .howto { gap: 10px; padding: 22px 14px 18px; }
+  .howtoLogoWrap { width: 180px; }
+  .maxWinBig { font-size: 26px; }
+  .maxWinBig span { font-size: 18px; }
+  .maxWinTop { font-size: 9px; letter-spacing: 4px; }
+  .howtoStage { height: 180px; }
+  .slideFeatures { gap: 8px; }
+  .featBadge      { width: 72px;  height: 72px; }
+  .featBadge.big  { width: 100px; height: 98px; }
+  .featLbl { font-size: 7.5px; letter-spacing: 1.5px; bottom: 6px; }
+  .howtoTitle { font-size: 14px; letter-spacing: 3px; }
+  .howtoDesc  { font-size: 11px; padding: 0 6px; }
+  .introStart { padding: 12px 32px; font-size: 14px; letter-spacing: 4px; }
+  .introArrow { width: 24px; height: 24px; }
   .aigoName { font-size: 26px; letter-spacing: 6px; }
   .loadBar { width: 200px; }
+}
+@media (max-height: 720px) {
+  .howto { gap: 8px; padding-top: 18px; }
+  .howtoStage { height: 160px; }
 }

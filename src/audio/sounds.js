@@ -67,29 +67,62 @@ function envSweep(osc, gain, t0, dur, peak) {
   osc.stop(t0 + dur + 0.04);
 }
 
-// === PEG PING — glassy short pluck ==================================
+// === PEG PING — soft wooden "thock" =================================
+// Old version was a bright bandpass-filtered sine in the 2-3 kHz range —
+// it read as a bird "chirp" especially when a ball ricocheted through
+// many pegs in a row. New version is a low-mid tonal pluck (~440 Hz)
+// blended with a very short filtered noise tick (the actual "thock"),
+// so it sits in the body of the mix instead of poking out the top.
 let lastPegT = 0;
+let noiseBuf = null;
+function getNoiseBuf() {
+  if (noiseBuf) return noiseBuf;
+  const sr = ctx.sampleRate;
+  const len = Math.floor(sr * 0.04);
+  noiseBuf = ctx.createBuffer(1, len, sr);
+  const ch = noiseBuf.getChannelData(0);
+  for (let i = 0; i < len; i++) {
+    // Exponential decay envelope baked into the buffer
+    ch[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.18));
+  }
+  return noiseBuf;
+}
 export function playPeg() {
   if (!ensure()) return;
   const now = ctx.currentTime;
-  // Throttle to avoid noise pile-ups when a ball grazes a row fast
-  if (now - lastPegT < 0.022) return;
+  // Longer throttle so rapid peg cascades don't pile into a buzz
+  if (now - lastPegT < 0.038) return;
   lastPegT = now;
 
-  const f = 1800 + Math.random() * 1400;
+  // -- 1. Tonal body: triangle pluck around 380-560 Hz, fast decay
+  const f = 380 + Math.random() * 180;
   const osc = ctx.createOscillator();
-  osc.type = 'sine';
+  osc.type = 'triangle';
   osc.frequency.setValueAtTime(f, now);
-  osc.frequency.exponentialRampToValueAtTime(f * 0.55, now + 0.10);
+  osc.frequency.exponentialRampToValueAtTime(f * 0.55, now + 0.06);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 1600;
+  lp.Q.value = 0.7;
+  const og = ctx.createGain();
+  osc.connect(lp); lp.connect(og); og.connect(master);
+  og.gain.setValueAtTime(0, now);
+  og.gain.linearRampToValueAtTime(0.085, now + 0.003);
+  og.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+  osc.start(now); osc.stop(now + 0.1);
 
+  // -- 2. Click attack: short filtered noise burst (the "tick")
+  const src = ctx.createBufferSource();
+  src.buffer = getNoiseBuf();
   const bp = ctx.createBiquadFilter();
   bp.type = 'bandpass';
-  bp.frequency.value = f;
-  bp.Q.value = 10;
-
-  const g = ctx.createGain();
-  osc.connect(bp); bp.connect(g); g.connect(master);
-  envSweep(osc, g, now, 0.13, 0.14);
+  bp.frequency.value = 1100 + Math.random() * 400;
+  bp.Q.value = 3.5;
+  const ng = ctx.createGain();
+  src.connect(bp); bp.connect(ng); ng.connect(master);
+  ng.gain.value = 0.06;
+  src.start(now);
+  src.stop(now + 0.05);
 }
 
 // === DROP — descending whoosh ========================================
