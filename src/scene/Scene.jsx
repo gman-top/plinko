@@ -117,12 +117,25 @@ export default function Scene() {
     const sideMargin = isMobile
       ? Math.max(16, st.w * 0.04)
       : Math.max(140, st.w * 0.17);
-    const topMargin = isMobile ? 64 : 110;
     const bottomMargin = isMobile ? 50 : 70;
+    const minTopMargin = isMobile ? 130 : 220;
     const availW = st.w - sideMargin * 2;
-    const availH = st.h - topMargin - bottomMargin;
 
-    const sp = Math.min(availW / bottomPegs, availH / (r + 1), 56);
+    // Two-pass sizing so the dispenser ALWAYS fits at the top:
+    //   topMargin = 2*sp (apex above first peg row) + 2*dispR + 14 (clearance + top padding)
+    //   sp = available height / (r + 0.65)
+    // First pass assumes minTopMargin; second pass recomputes if the
+    // dispenser needs more room than that.
+    const sp_byW = availW / bottomPegs;
+    let availH = st.h - minTopMargin - bottomMargin;
+    let sp = Math.min(sp_byW, availH / (r + 0.65), 56);
+    let dispR = Math.min(58, sp * 1.2);
+    let topMargin = Math.max(minTopMargin, 2 * sp + 2 * dispR + 14);
+    if (topMargin > minTopMargin) {
+      availH = st.h - topMargin - bottomMargin;
+      sp = Math.min(sp_byW, availH / (r + 0.65), 56);
+      dispR = Math.min(58, sp * 1.2);
+    }
     const cx = st.w / 2;
     const pyramidH = (r - 1) * sp;
     const apexY = topMargin + (availH - pyramidH - sp) / 2;
@@ -179,7 +192,10 @@ export default function Scene() {
     const halfBase = totalH / 2;
     st.baseL = { x: cx - halfBase, y: slotRowBottom };
     st.baseR = { x: cx + halfBase, y: slotRowBottom };
-    st.dispenser = { x: cx, y: apexY - sp * 2.4, r: Math.min(58, sp * 1.4) };
+    // Dispenser sits just above the rail apex, fully visible at the top
+    // of the canvas. dispR was computed above when sizing topMargin.
+    const dispenserCenterY = st.apex.y - dispR - 6;
+    st.dispenser = { x: cx, y: dispenserCenterY, r: dispR };
 
     // Constellation links: for each peg, connect to its nearest 2-3
     // neighbours in the next row (so we draw faint diagonal lines that
@@ -774,28 +790,54 @@ export default function Scene() {
     ctx.fillStyle = dg;
     ctx.beginPath(); ctx.arc(x, y, r * 0.84, 0, Math.PI * 2); ctx.fill();
     const t = now / 1000;
+    // Mixed palette matching the LEGEND_BADGES so the dispenser shows
+    // every ball type at a glance: orange / yellow / red / blue /
+    // purple / pink. 12 ball slots in a tight cluster.
     const cluster = [
-      [-0.40,  0.05], [-0.20, -0.10], [ 0.00,  0.10], [ 0.22, -0.05], [ 0.40,  0.04],
-      [-0.30,  0.25], [-0.05,  0.20], [ 0.20,  0.25], [ 0.38,  0.22],
-      [-0.20, -0.30], [ 0.10, -0.32], [ 0.30, -0.28],
+      { ox: -0.40, oy:  0.05, c: 'orange' },
+      { ox: -0.20, oy: -0.10, c: 'yellow' },
+      { ox:  0.00, oy:  0.10, c: 'red'    },
+      { ox:  0.22, oy: -0.05, c: 'orange' },
+      { ox:  0.40, oy:  0.04, c: 'blue'   },
+      { ox: -0.30, oy:  0.25, c: 'orange' },
+      { ox: -0.05, oy:  0.20, c: 'purple' },
+      { ox:  0.20, oy:  0.25, c: 'orange' },
+      { ox:  0.38, oy:  0.22, c: 'pink'   },
+      { ox: -0.20, oy: -0.30, c: 'yellow' },
+      { ox:  0.10, oy: -0.32, c: 'orange' },
+      { ox:  0.30, oy: -0.28, c: 'blue'   },
     ];
+    const COLS = {
+      orange: ['#FFE695', '#FA7909', '#5C3F08'],
+      yellow: ['#FFFFFF', '#FFE695', '#7A6008'],
+      red:    ['#FFB347', '#FF2D2D', '#7A0F0F'],
+      blue:   ['#B9DAFF', '#2090FF', '#0A3E5C'],
+      purple: ['#E6A6FF', '#B946FF', '#3D0A5C'],
+      pink:   ['#FFB6E0', '#E040A0', '#5C0A40'],
+    };
     for (let i = 0; i < cluster.length; i++) {
-      const [ox, oy] = cluster[i];
+      const { ox, oy, c } = cluster[i];
+      const [c0, c1, c2] = COLS[c];
       const phi = i * 0.7;
       const jx = Math.sin(t * 1.3 + phi) * 0.6;
       const jy = Math.cos(t * 1.5 + phi) * 0.6;
       const bx = x + (ox * r) + jx;
       const by = y + (oy * r) + jy;
-      const br = r * 0.18;
+      const br = r * 0.19;
+      // Outer glow halo coloured to the ball
+      ctx.save();
+      ctx.shadowColor = c1; ctx.shadowBlur = 6;
       const bg = ctx.createRadialGradient(bx - br * 0.4, by - br * 0.45, 0.5, bx, by, br);
-      bg.addColorStop(0, '#FFE695');
-      bg.addColorStop(0.4, '#FA7909');
-      bg.addColorStop(1, '#5C3F08');
+      bg.addColorStop(0, c0);
+      bg.addColorStop(0.45, c1);
+      bg.addColorStop(1, c2);
       ctx.fillStyle = bg;
       ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.restore();
+      // Specular highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
       ctx.beginPath();
-      ctx.arc(bx - br * 0.35, by - br * 0.45, br * 0.22, 0, Math.PI * 2);
+      ctx.arc(bx - br * 0.35, by - br * 0.45, br * 0.25, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.fillStyle = '#050404';
