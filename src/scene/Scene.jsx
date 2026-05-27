@@ -829,68 +829,43 @@ export default function Scene() {
       purple: ['#E6A6FF', '#B946FF', '#3D0A5C'],
       pink:   ['#FFB6E0', '#E040A0', '#5C0A40'],
     };
-    // Gentle pile sway — ~±9° rocking around bowl centre
-    const sway = Math.sin(now / 2400) * 0.16;
+    // Gentle pile sway — ~±5° rocking around bowl centre (subtle)
+    const sway = Math.sin(now / 2800) * 0.09;
     const cosS = Math.cos(sway), sinS = Math.sin(sway);
-    const br = r * 0.22;
-    // Draw far→near so the upper-pile balls visually sit on top
-    // (row 1 bottom is rendered first → row 5 top is rendered last)
+    const br = r * 0.20;
+    // Draw bottom→top so upper-pile balls visually sit on top
     for (let i = 0; i < cluster.length; i++) {
       const { ox, oy, c } = cluster[i];
       const [c0, c1, c2] = COLS[c];
-      // Per-ball jiggle for liveness
       const phi = i * 0.65;
-      const jx = Math.sin(t * 1.4 + phi) * 0.5;
-      const jy = Math.cos(t * 1.6 + phi) * 0.5;
-      // Rotate base position by the sway around (0,0) bowl centre
+      const jx = Math.sin(t * 1.3 + phi) * 0.25;
+      const jy = Math.cos(t * 1.5 + phi) * 0.25;
       const rx = ox * cosS - oy * sinS;
       const ry = ox * sinS + oy * cosS;
       const bx = x + (rx * r) + jx;
       const by = y + (ry * r) + jy;
-      // === Ball body — radial gradient with deep rim ===
-      ctx.save();
-      ctx.shadowColor = c1; ctx.shadowBlur = 7;
+      // === Clean Figma-style ball: body radial gradient + bright spot.
+      // No shadowBlur halo, no rim light, no clipping tricks — keeps
+      // the balls crisp and "sitting in the bowl" instead of smearing
+      // colour into each other.
       const bg = ctx.createRadialGradient(
-        bx - br * 0.38, by - br * 0.42, 0,
+        bx - br * 0.32, by - br * 0.38, br * 0.08,
         bx, by, br
       );
       bg.addColorStop(0,    c0);
-      bg.addColorStop(0.42, c1);
-      bg.addColorStop(0.92, c2);
-      bg.addColorStop(1,    '#0a0805');
+      bg.addColorStop(0.55, c1);
+      bg.addColorStop(1,    c2);
       ctx.fillStyle = bg;
       ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-      // === Specular highlight — rotates around the ball so each ball
-      // looks like it's slowly spinning in place ===
-      const spin = now / 1800 + i * 0.45;
-      const hlAng = spin;
-      const hlR = br * 0.45;
-      const hlx = bx + Math.cos(hlAng) * br * 0.32;
-      const hly = by - Math.abs(Math.sin(hlAng)) * br * 0.32 - br * 0.18;
-      const hg = ctx.createRadialGradient(hlx, hly, 0, hlx, hly, hlR);
-      hg.addColorStop(0,   'rgba(255,255,255,0.95)');
-      hg.addColorStop(0.45,'rgba(255,255,255,0.35)');
-      hg.addColorStop(1,   'rgba(255,255,255,0)');
-      // Mask the highlight to the ball circle
-      ctx.save();
-      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.clip();
-      ctx.fillStyle = hg;
-      ctx.fillRect(bx - br, by - br, br * 2, br * 2);
-      ctx.restore();
-      // === Soft bottom rim light (ambient bounce off the bowl floor) ===
-      ctx.save();
-      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.clip();
-      const rim = ctx.createRadialGradient(
-        bx, by + br * 0.25, br * 0.3,
-        bx, by, br * 1.05
-      );
-      rim.addColorStop(0, 'rgba(255,224,138,0)');
-      rim.addColorStop(0.7, 'rgba(255,224,138,0)');
-      rim.addColorStop(1, 'rgba(255,224,138,0.32)');
-      ctx.fillStyle = rim;
-      ctx.fillRect(bx - br, by - br, br * 2, br * 2);
-      ctx.restore();
+      // Single small specular dot — slowly orbits the upper hemisphere
+      // so each ball reads as gently spinning in place.
+      const spin = now / 2400 + i * 0.5;
+      const hx = bx + Math.cos(spin) * br * 0.30;
+      const hy = by - br * 0.34 + Math.sin(spin) * br * 0.10;
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.beginPath();
+      ctx.arc(hx, hy, br * 0.22, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.fillStyle = '#050404';
     ctx.strokeStyle = '#D4AF37';
