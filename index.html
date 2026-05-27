@@ -51,12 +51,14 @@ body{position:fixed;inset:0}
 #boardWrap{position:absolute;left:50%;top:200px;transform:translateX(-50%);width:560px;height:600px;z-index:5;pointer-events:auto}
 #board{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:2}
 
-/* Triangle diagonal SVGs (LINES on the sides) — Vector 10 from Figma, mirrored */
-.triLine{position:absolute;width:195px;height:470px;pointer-events:none;z-index:1;
+/* Triangle diagonal SVGs (LINES on the sides) — Vector 10 from Figma, mirrored.
+   Dimensions are CSS-var driven so they re-fit the pyramid when row count changes. */
+.triLine{position:absolute;width:var(--tri-w,205px);height:var(--tri-h,440px);pointer-events:none;z-index:1;
+  top:var(--tri-y,210px);
   background:url('assets/svg/tri-line.svg') no-repeat;background-size:100% 100%;
   filter:drop-shadow(0 0 14px rgba(212,123,55,.55))}
-.triLine.left{top:210px;left:calc(50% - 195px)}
-.triLine.right{top:210px;left:50%;transform:scaleX(-1);transform-origin:left center}
+.triLine.left{left:calc(50% - var(--tri-w,205px))}
+.triLine.right{left:50%;transform:scaleX(-1);transform-origin:left center}
 /* Animated sweep along the lines */
 .triLine::after{content:'';position:absolute;inset:0;
   background:url('assets/svg/tri-line.svg') no-repeat;background-size:100% 100%;
@@ -76,7 +78,19 @@ body{position:fixed;inset:0}
 @keyframes ringPulse{from{transform:scale(.95);opacity:.7}to{transform:scale(1.05);opacity:1}}
 .dispenser .balls{position:absolute;inset:14%;
   background:url('assets/svg/dispenser-balls.svg') center/contain no-repeat;
-  filter:drop-shadow(0 0 8px rgba(255,167,71,.6))}
+  filter:drop-shadow(0 0 8px rgba(255,167,71,.6));
+  transform-origin:50% 60%;
+  animation:ballsJiggle 4s ease-in-out infinite}
+@keyframes ballsJiggle{
+  0%   { transform:translate(0,0) rotate(0) scale(1) }
+  20%  { transform:translate(-1px,-2px) rotate(-1.5deg) scale(1.015) }
+  40%  { transform:translate(1.5px,-1px) rotate(1deg) scale(1.005) }
+  60%  { transform:translate(0,1px) rotate(2deg) scale(.99) }
+  80%  { transform:translate(-1.5px,0) rotate(-.5deg) scale(1.01) }
+  100% { transform:translate(0,0) rotate(0) scale(1) }
+}
+/* Subtle secondary ring rotation for energy */
+.dispenser .ring{transform-origin:50% 50%}
 .dispenser .glow{position:absolute;inset:-50%;border-radius:50%;
   background:radial-gradient(circle, rgba(255,224,138,.3) 0%, transparent 60%);
   animation:dispGlow 3s ease-in-out infinite alternate}
@@ -175,15 +189,20 @@ body{position:fixed;inset:0}
 .betAmt{position:absolute;left:calc(50% + 85px);bottom:80px;width:157px}
 .autoCtrl{position:absolute;left:calc(50% + 85px);bottom:184px;width:131px}
 
-/* PLAY — Figma SVG button with gold ring + striped pattern */
+/* PLAY — Figma SVG button (gold ring + striped pattern) + "PLAY" text overlay */
 .playWrap{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);width:188px;height:188px;cursor:pointer;z-index:10;
   background:url('assets/svg/play-btn.svg') center/contain no-repeat;
   filter:drop-shadow(0 0 22px rgba(255,224,138,.7)) drop-shadow(0 0 50px rgba(212,175,55,.4));
-  transition:transform .15s}
+  transition:transform .15s;display:grid;place-items:center}
 .playWrap:hover{transform:translateX(-50%) scale(1.04);
   filter:drop-shadow(0 0 32px rgba(255,224,138,1)) drop-shadow(0 0 70px rgba(212,175,55,.7))}
 .playWrap:active{transform:translateX(-50%) scale(.96)}
 .playWrap.disabled{opacity:.45;cursor:not-allowed}
+.playWrap .playText{font-family:'Inter',sans-serif;font-weight:800;font-size:36px;color:#fff;letter-spacing:6px;
+  text-shadow:0 2px 4px rgba(0,0,0,.6),0 0 14px rgba(255,255,255,.5),0 0 24px rgba(255,224,138,.8);
+  pointer-events:none;position:relative;z-index:2;animation:playPulse 2s ease-in-out infinite alternate}
+@keyframes playPulse{from{text-shadow:0 2px 4px rgba(0,0,0,.6),0 0 14px rgba(255,255,255,.5),0 0 24px rgba(255,224,138,.8)}
+  to{text-shadow:0 2px 4px rgba(0,0,0,.6),0 0 22px rgba(255,255,255,.8),0 0 36px rgba(255,224,138,1)}}
 /* Light sweep on play button surface */
 .playWrap::before{content:'';position:absolute;inset:0;border-radius:50%;
   background:linear-gradient(60deg, transparent 30%, rgba(255,255,255,.4) 50%, transparent 70%);
@@ -367,7 +386,9 @@ body{position:fixed;inset:0}
 </div>
 
 <!-- PLAY -->
-<div class="playWrap" id="playBtn" title="Drop ball (Space)"></div>
+<div class="playWrap" id="playBtn" title="Drop ball (Space)">
+  <div class="playText">PLAY</div>
+</div>
 
 <!-- BET AMOUNT -->
 <div class="betAmt panelWrap">
@@ -529,6 +550,18 @@ function buildBoard(){
       cands.splice(idx,1);
     }
   }
+  // Re-fit the diagonal triangle frame to the current pyramid geometry.
+  // Triangle apex sits a touch above the first peg row (under the dispenser),
+  // base aligns with the slot row top, width = half the slot-row width.
+  const triHalfBase = (slotCount * sp) / 2 + 6;
+  const boardTopInGame = 200;          // matches #boardWrap top
+  const apexY = boardTopInGame + board.topY - 20;
+  const baseY = boardTopInGame + board.slotsY + 4;
+  const triH  = baseY - apexY;
+  const root = document.documentElement;
+  root.style.setProperty('--tri-w', triHalfBase + 'px');
+  root.style.setProperty('--tri-h', triH + 'px');
+  root.style.setProperty('--tri-y', apexY + 'px');
   updateHUD();
 }
 
