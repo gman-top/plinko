@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050404">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Plinko Gone Wild</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/bg.png">
 <style>
 :root{
   --bg0:#050404; --bg1:#0B0805; --bg2:#13100A; --bg3:#1A140C; --bg4:#241A0F;
@@ -20,22 +24,26 @@
   --green:#3FCB7C; --divider:#3A2B14;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;background:var(--bg0);overflow:hidden;color:var(--cream);font-family:'Inter',-apple-system,system-ui,sans-serif;user-select:none}
+html,body{width:100%;height:100%;background:#050404;overflow:hidden;color:var(--cream);font-family:'Inter',-apple-system,system-ui,sans-serif;user-select:none;-webkit-user-select:none}
 body{position:fixed;inset:0}
 
-#stage{position:fixed;inset:0;display:grid;place-items:center;background:#050404;background-image:
-  radial-gradient(ellipse at 50% 30%, rgba(58,40,15,.6) 0%, rgba(0,0,0,0) 60%),
-  radial-gradient(ellipse at 50% 80%, rgba(20,14,8,.6) 0%, rgba(0,0,0,0) 60%);overflow:hidden}
+/* Stage covers full viewport with the Figma gold-spheres background. The #game node holds the
+   pixel-perfect 1920x1080 design; CSS transform scales it to fit any viewport. */
+#stage{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;
+  background:#050404 url('assets/bg.png') center/cover no-repeat fixed}
+#stage::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(0,0,0,0) 0%, rgba(0,0,0,.35) 70%, rgba(0,0,0,.7) 100%),
+    radial-gradient(ellipse at 50% 30%, rgba(58,40,15,.35) 0%, transparent 60%)}
 
-#game{position:relative;width:1920px;height:1080px;transform-origin:center center;overflow:hidden;background:
-  radial-gradient(ellipse 1100px 700px at 50% 50%, rgba(61,42,11,.4) 0%, rgba(13,10,7,.7) 60%, rgba(0,0,0,.95) 100%)}
+#game{position:relative;width:1920px;height:1080px;transform-origin:center center;overflow:hidden;background:transparent}
 
 /* particles bg */
 #bgParticles{position:absolute;inset:0;pointer-events:none;z-index:1}
 
 /* TOP BAR */
 .topbar{position:absolute;top:0;left:0;width:100%;height:76px;display:flex;align-items:center;padding:0 32px;z-index:50;
-  background:linear-gradient(90deg,rgba(11,8,5,.95) 0%,rgba(19,16,10,.92) 50%,rgba(11,8,5,.95) 100%)}
+  background:linear-gradient(90deg,rgba(11,8,5,.85) 0%,rgba(19,16,10,.78) 50%,rgba(11,8,5,.85) 100%);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .topbar::after{content:'';position:absolute;left:0;bottom:0;width:100%;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(242,199,92,.7) 50%,transparent 100%)}
 
 .balPill{display:flex;align-items:center;gap:12px;padding:8px 18px 8px 8px;border-radius:24px;background:var(--panelGlass);
@@ -62,8 +70,8 @@ body{position:fixed;inset:0}
 
 /* LEFT PANEL */
 .panel{position:absolute;top:110px;width:304px;border-radius:18px;
-  background:linear-gradient(180deg,rgba(28,20,11,.88) 0%,rgba(15,11,7,.92) 100%);
-  border:1px solid rgba(201,150,43,.35);box-shadow:0 16px 36px rgba(0,0,0,.6),inset 0 0 1px rgba(201,150,43,.25);z-index:10}
+  background:linear-gradient(180deg,rgba(28,20,11,.78) 0%,rgba(15,11,7,.85) 100%);
+  border:1px solid rgba(201,150,43,.35);box-shadow:0 16px 36px rgba(0,0,0,.5),inset 0 0 1px rgba(201,150,43,.25);z-index:10;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .leftPanel{left:32px;height:860px;padding:24px;overflow:hidden}
 .panel h3{font-size:14px;letter-spacing:3px;color:var(--goldHi);font-weight:700;margin-bottom:14px}
 .panel .rule{height:1px;background:linear-gradient(90deg,rgba(201,150,43,.6),transparent);margin-bottom:18px}
@@ -141,10 +149,10 @@ body{position:fixed;inset:0}
 
 /* BOARD */
 #boardWrap{position:absolute;left:50%;top:110px;transform:translateX(-50%);width:1120px;height:860px;border-radius:24px;
-  background:linear-gradient(180deg,rgba(19,16,10,.65),rgba(11,8,5,.9));border:1px solid rgba(201,150,43,.4);
-  box-shadow:0 20px 50px rgba(0,0,0,.7),inset 0 0 2px rgba(242,199,92,.2);overflow:hidden;z-index:5}
+  background:linear-gradient(180deg,rgba(19,16,10,.45),rgba(5,4,4,.7));border:1px solid rgba(201,150,43,.4);
+  box-shadow:0 20px 50px rgba(0,0,0,.6),inset 0 0 2px rgba(242,199,92,.25);overflow:hidden;z-index:5;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 #boardWrap::before{content:'';position:absolute;left:50%;top:8%;transform:translateX(-50%);width:78%;height:80%;
-  background:radial-gradient(ellipse, rgba(201,150,43,.15) 0%, rgba(92,63,8,.08) 50%, transparent 80%);pointer-events:none}
+  background:radial-gradient(ellipse, rgba(201,150,43,.12) 0%, rgba(92,63,8,.06) 50%, transparent 80%);pointer-events:none}
 
 #board{position:absolute;inset:0;display:block;width:100%;height:100%}
 
@@ -714,14 +722,42 @@ const rand = (min,max)=>Math.random()*(max-min)+min;
 const irand = (min,max)=>Math.floor(rand(min,max+1));
 const fmt = n=>'$ '+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-// ---------- Fit container to viewport ----------
+// ---------- Fit container to viewport (Mac/Safari friendly) ----------
 function fit(){
-  const w=window.innerWidth, h=window.innerHeight;
-  const s=Math.min(w/1920,h/1080);
-  const g=$('#game');
-  g.style.transform = `scale(${s})`;
+  // visualViewport is more accurate than innerWidth/innerHeight on Mac/iOS Safari
+  const vv = window.visualViewport;
+  const w = vv ? vv.width : window.innerWidth;
+  const h = vv ? vv.height : window.innerHeight;
+  const s = Math.min(w/1920, h/1080);
+  const g = $('#game');
+  g.style.transform = `translate(-50%,-50%) scale(${s})`;
+  g.style.position = 'absolute';
+  g.style.left = '50%';
+  g.style.top = '50%';
 }
-window.addEventListener('resize',fit); fit();
+window.addEventListener('resize', fit);
+window.addEventListener('orientationchange', fit);
+if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+// Defer initial fit until fonts/CSS settle so first layout isn't off
+requestAnimationFrame(()=>requestAnimationFrame(fit));
+window.addEventListener('load', fit);
+fit();
+
+// ---------- High-DPI canvas (crisp on Retina/Mac) ----------
+function setupCanvas(canvas){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const w = canvas.width, h = canvas.height;
+  // CSS size stays the same; backing buffer is DPR-multiplied
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  const ctx = canvas.getContext('2d', {alpha:true});
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  // logical sizes remain 1120x860 etc for game math
+  canvas._dpr = dpr;
+  return ctx;
+}
 
 // ---------- Multiplier tables (Stake-style approximations) ----------
 const MULT_TABLE = {
@@ -788,7 +824,7 @@ const board = {
   slotW: 50,
   slots: []
 };
-board.ctx = board.c.getContext('2d',{alpha:true});
+board.ctx = setupCanvas(board.c);
 
 function buildBoard(){
   // pegs grid: rows from 3 at top to rows+2 at bottom (rows of pegs total = rows+1)
@@ -1525,8 +1561,17 @@ function showTut(){
 }
 function drawTutPreview(acc, idx){
   const c = $('#tutCanvas');
+  // DPR-aware setup once
+  if (!c._setup){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    const w = c.width, h = c.height;
+    c.style.width = w + 'px'; c.style.height = h + 'px';
+    c.width = w * dpr; c.height = h * dpr;
+    c._setup = true; c._dpr = dpr; c._logicalW = w; c._logicalH = h;
+  }
   const ctx = c.getContext('2d');
-  const W=c.width, H=c.height;
+  ctx.setTransform(c._dpr,0,0,c._dpr,0,0);
+  const W=c._logicalW, H=c._logicalH;
   ctx.clearRect(0,0,W,H);
   // grid of pegs
   const sp = 44;
@@ -1648,25 +1693,7 @@ $('#tutNextArr').addEventListener('click', ()=>{ if (tutIdx<TUT.length-1){ tutId
 $('#tutNext').addEventListener('click', ()=>{ if (tutIdx<TUT.length-1){ tutIdx++; showTut(); } else { close('#tutOv'); }});
 $('#tutSkip').addEventListener('click', ()=>close('#tutOv'));
 
-// background particles
-function spawnBgParticles(){
-  const wrap = $('#bgParticles');
-  wrap.innerHTML='';
-  for (let i=0;i<60;i++){
-    const d = document.createElement('div');
-    const s = 1 + Math.random()*3;
-    d.style.cssText = `position:absolute;left:${Math.random()*1920}px;top:${Math.random()*1080}px;width:${s}px;height:${s}px;border-radius:50%;background:#FFD86B;opacity:${0.15+Math.random()*0.5};box-shadow:0 0 6px #FFD86B;animation:float${Math.floor(Math.random()*3)} ${8+Math.random()*8}s ease-in-out infinite alternate`;
-    wrap.appendChild(d);
-  }
-}
-const styleEl = document.createElement('style');
-styleEl.textContent = `
-@keyframes float0{from{transform:translateY(0)}to{transform:translateY(-20px)}}
-@keyframes float1{from{transform:translateY(0)}to{transform:translateY(15px)}}
-@keyframes float2{from{transform:translate(0,0)}to{transform:translate(10px,-10px)}}
-`;
-document.head.appendChild(styleEl);
-spawnBgParticles();
+// (bg particles disabled — the Figma gold-spheres image carries the atmosphere)
 
 // ---------- Synth sound ----------
 function playPing(freq, dur){
