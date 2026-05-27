@@ -337,10 +337,10 @@ body { position: fixed; inset: 0; }
 /* ===== BOTTOM INFO BAR ===== */
 .botbar {
   position: absolute;
-  left: 0; right: 0; bottom: -6px;
+  left: 0; right: 0; bottom: 18px;
   height: 36px;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 clamp(28px, 4vw, 80px);
+  padding: 0 clamp(40px, 5vw, 120px);
   font-size: 11px; color: var(--goldHi); letter-spacing: 1.5px;
   z-index: 11; pointer-events: none;
 }
@@ -616,8 +616,8 @@ body { position: fixed; inset: 0; }
 
   /* Compact bottom info bar */
   .botbar {
-    bottom: 8px;
-    padding: 0 22px;
+    bottom: 14px;
+    padding: 0 28px;
     font-size: 9.5px;
     letter-spacing: 1px;
   }
@@ -786,7 +786,7 @@ body { position: fixed; inset: 0; }
   /* TRUE fullscreen — the modal is the screen */
   width: 100vw; max-width: 100vw;
   height: 100vh; height: 100dvh;
-  padding: clamp(20px, 3vh, 36px) clamp(80px, 9vw, 140px) clamp(18px, 2.5vh, 32px);
+  padding: clamp(28px, 3.5vh, 48px) clamp(96px, 10vw, 160px) clamp(28px, 4vh, 56px);
   gap: clamp(14px, 2vh, 28px);
   box-sizing: border-box;
   animation: introPop .55s cubic-bezier(.2,1.2,.3,1.1);
@@ -1246,7 +1246,7 @@ body { position: fixed; inset: 0; }
 /* Tutorial responsive — already fullscreen on every breakpoint */
 @media (max-width: 768px) {
   .howto {
-    padding: 48px 56px 18px;
+    padding: 52px 60px 32px;
     gap: 10px;
   }
   .howtoLogo { width: clamp(160px, 56vw, 240px); }
