@@ -47,35 +47,34 @@ export default function Scene() {
       <Canvas
         dpr={[1, 2]}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-        camera={{ position: [0, 0, 12], fov: 35, near: 0.1, far: 100 }}
+        camera={{ position: [0, 0, 14], fov: 38, near: 0.1, far: 100 }}
         shadows
       >
-        <color attach="background" args={[0, 0, 0]} />
+        {/* No <color attach="background"> — keep WebGL alpha so the Figma
+            gold-spheres bg.png shows through behind the canvas. */}
 
         <Lighting />
         <CameraRig />
 
         <Suspense fallback={null}>
           <Physics gravity={[0, -28, 0]} timeStep={1 / 120}>
-            {/* The static plinko board: backplate, rails, pegs as physics colliders */}
             <PlinkoBoard geometry={liveG} />
             <TriangleRails geometry={liveG} />
             <Pegs geometry={liveG} />
             <Slots geometry={liveG} />
             <Dispenser geometry={liveG} />
-            {/* Active falling balls (one rigid body each, removed on landing) */}
             <Balls geometry={liveG} />
           </Physics>
         </Suspense>
 
-        <EffectComposer multisampling={4}>
+        <EffectComposer>
           <Bloom
-            intensity={0.8}
-            luminanceThreshold={0.25}
-            luminanceSmoothing={0.35}
+            intensity={0.85}
+            luminanceThreshold={0.32}
+            luminanceSmoothing={0.4}
             mipmapBlur
           />
-          <Vignette eskil={false} offset={0.18} darkness={0.55} />
+          <Vignette eskil={false} offset={0.2} darkness={0.55} />
         </EffectComposer>
       </Canvas>
     </div>

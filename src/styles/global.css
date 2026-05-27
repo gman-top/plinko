@@ -58,10 +58,11 @@ body { position: fixed; inset: 0; }
 /* --- 3D scene container fills the centre, UI overlays float above --- */
 .scene-container {
   position: absolute;
-  left: 50%; top: 200px;
+  left: 50%; top: 100px;
   transform: translateX(-50%);
-  width: 720px; height: 720px;
+  width: 820px; height: 800px;
   z-index: 5;
+  pointer-events: none;  /* let UI overlay catch interactions */
 }
 .scene-container canvas {
   width: 100% !important;

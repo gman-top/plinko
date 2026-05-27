@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { Text } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import { RigidBody } from '@react-three/rapier';
 import { useFrame } from '@react-three/fiber';
 import { useGame } from '../state/gameStore.js';
@@ -126,19 +126,24 @@ function Slot({ slot, mult, color, colorDeep, getPulse }) {
         <meshStandardMaterial color="#FFE695" emissive="#FFE695" emissiveIntensity={2.0} metalness={1} roughness={0.1} />
       </mesh>
 
-      {/* Multiplier label */}
-      <Text
-        position={[0, -0.005, 0.12]}
-        fontSize={mult >= 100 ? 0.16 : 0.18}
-        color="#ffffff"
-        anchorX="center"
-        anchorY="middle"
-        font="https://fonts.gstatic.com/s/audiowide/v20/l7gdbjpo0cum0ckerWCdlg_O.woff"
-        outlineWidth={0.012}
-        outlineColor="#000000"
+      {/* Multiplier label — HTML projection over the slot face so we
+          don't depend on remote font fetching inside the 3D layer.
+          The drei <Html> renders a div at this 3D position. */}
+      <Html
+        position={[0, 0, 0.12]}
+        center
+        distanceFactor={5}
+        style={{ pointerEvents: 'none', userSelect: 'none' }}
       >
-        {labelText}
-      </Text>
+        <div style={{
+          fontFamily: 'Audiowide, Inter, sans-serif',
+          fontSize: mult >= 100 ? 18 : 20,
+          color: '#fff',
+          textShadow: '0 1px 2px rgba(0,0,0,.9), 0 0 4px rgba(0,0,0,.8)',
+          letterSpacing: '1px',
+          whiteSpace: 'nowrap',
+        }}>{labelText}</div>
+      </Html>
 
       {/* Physics: a small invisible cuboid trigger zone above the slot
           centre. Balls collide with the bottom floor (in PlinkoBoard)
