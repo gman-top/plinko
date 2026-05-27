@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useGame } from '../state/gameStore.js';
 import { BALL_TYPES } from '../state/config.js';
 import * as Sounds from '../audio/sounds.js';
+import { drawFigmaBall } from './drawBall.js';
 
 /**
  * PLINKO GONE COSMIC — single-canvas re-interpretation.
@@ -1229,31 +1230,6 @@ export default function Scene() {
       }
     }
   }
-  function drawFigmaBall(ctx, x, y, r, t) {
-    ctx.save();
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
-    const a1 = 114.341 * Math.PI / 180;
-    const dx1 = Math.cos(a1) * r * 0.14, dy1 = -Math.sin(a1) * r * 0.22;
-    const g1 = ctx.createRadialGradient(x + dx1, y + dy1, 0, x + dx1, y + dy1, r * 1.05);
-    g1.addColorStop(0, '#000'); g1.addColorStop(1, t.deep);
-    ctx.fillStyle = g1; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    const a2 = 56.385 * Math.PI / 180;
-    const dx2 = Math.cos(a2) * r * -0.5, dy2 = Math.sin(a2) * r * -0.45;
-    const g2 = ctx.createRadialGradient(x + dx2, y + dy2, 0, x + dx2, y + dy2, r * 1.3);
-    g2.addColorStop(0, t.glow); g2.addColorStop(1, 'rgba(255,96,96,0)');
-    ctx.fillStyle = g2; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    const a3 = 135.22 * Math.PI / 180;
-    const dx3 = Math.cos(a3) * r * 0.67, dy3 = Math.sin(a3) * r * -0.52;
-    const g3 = ctx.createRadialGradient(x + dx3, y + dy3, 0, x + dx3, y + dy3, r * 0.73);
-    g3.addColorStop(0, '#fff'); g3.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g3; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    const g4 = ctx.createLinearGradient(x + r * 0.27, y - r * 0.72, x - r * 0.27, y + r * 0.46);
-    g4.addColorStop(0, 'rgba(255,255,255,0.6)');
-    g4.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g4; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    ctx.restore();
-  }
-
   return <canvas ref={canvasRef} className="board-canvas" />;
 }
 

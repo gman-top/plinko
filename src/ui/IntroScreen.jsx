@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useGame } from '../state/gameStore.js';
+import { BALL_TYPES } from '../state/config.js';
+import { drawFigmaBall, drawBallAura } from '../scene/drawBall.js';
 import * as Sounds from '../audio/sounds.js';
 
 // Vite rewrites CSS url() to include the base path automatically, but
@@ -13,29 +15,55 @@ const SLIDES = [
   {
     id: 'play',
     title: 'HOW TO PLAY',
-    desc: 'Pick LINES (8–16) and a RISK LEVEL. Set your BET, then hit PLAY to drop a comet through the star field. Wherever it lands, that slot’s multiplier × your bet is the payout.',
+    desc: 'Set your BET, pick LINES (8–16) and RISK, then hit PLAY to drop a comet through the star field. Where it lands × your bet = your win.',
   },
   {
     id: 'features',
-    title: 'THREE ACTIVATING SPIN FEATURES',
-    desc: 'Toggle one — or all three — of the feature stars below the board. Each one adds a new way the field can pay out bigger. They stack.',
+    title: 'THREE SPIN FEATURES',
+    desc: 'Toggle one — or all three — feature stars below the board. Each one adds a new way the field can pay out bigger. They stack.',
   },
   {
     id: 'mult',
     title: 'MULTIPLIERS',
-    desc: 'Adds up to 3 multiplier stars to the field. Passing through them boosts the ball’s final multiplier — they compound on a single drop.',
+    desc: 'Up to 3 multiplier stars appear on the field. Passing through them boosts the ball’s final multiplier — they compound on a single drop.',
   },
   {
     id: 'respin',
     title: 'RESPIN CHANCE',
-    desc: 'Adds up to 4 vortex slots. Landing in one grants you an extra free ball — without paying the bet again.',
+    desc: 'Up to 4 vortex slots replace regular slots. Landing in one grants you an extra free ball — without paying the bet again.',
   },
   {
     id: 'multball',
-    title: 'MULTIPLIER BALL CHANCE',
-    desc: 'A chance to release a ball with a higher starting multiplier. Six colour tiers — the rarer the colour, the higher the boost.',
+    title: 'MULTIPLIER BALL',
+    desc: 'A chance to release a comet with a higher starting multiplier. Six colour tiers — rarer colour, bigger boost.',
   },
 ];
+
+// =============================================================
+// <Ball /> — canvas-rendered copy of the in-game comet (real
+// Figma-ball gradients + aura). All sizes in CSS pixels.
+// =============================================================
+function Ball({ type = BALL_TYPES.gold, size = 36, aura = true, glowScale = 1 }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const total = aura ? size * 3 : size * 1.2;
+    canvas.width = total * dpr;
+    canvas.height = total * dpr;
+    canvas.style.width = total + 'px';
+    canvas.style.height = total + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, total, total);
+    const cx = total / 2, cy = total / 2;
+    const r = size / 2;
+    if (aura) drawBallAura(ctx, cx, cy, r, type, glowScale);
+    drawFigmaBall(ctx, cx, cy, r, type);
+  }, [type, size, aura, glowScale]);
+  return <canvas ref={ref} className="introBall" />;
+}
 
 export default function IntroScreen() {
   const phase = useGame(s => s.introPhase);
@@ -152,18 +180,14 @@ export default function IntroScreen() {
 }
 
 // =============================================================
-// SLIDE 0 — HOW TO PLAY (basics)
-// Uses the actual chip + PLAY button styling from the game so the
-// tutorial reads as a screenshot, not an abstract icon set.
+// SLIDE 0 — HOW TO PLAY
+// Uses real chip + real PLAY button + a real gold Ball above PLAY
 // =============================================================
 function SlideHowToPlay() {
   return (
     <div className="slide playSlide">
       <div className="playStep">
-        <div className="psHead">
-          <div className="psN">1</div>
-          <div className="psLbl">SET BET</div>
-        </div>
+        <div className="psN">1</div>
         <div className="psBody">
           <div className="fakeCtrl">
             <span className="fakeCtrlArrow l" />
@@ -171,21 +195,19 @@ function SlideHowToPlay() {
             <span className="fakeCtrlArrow r" />
           </div>
         </div>
-        <div className="psHint">Choose how much to wager per drop</div>
+        <div className="psLbl">SET BET</div>
+        <div className="psHint">Pick how much to wager per drop</div>
       </div>
 
-      <div className="psSep" />
+      <div className="psArrow" />
 
       <div className="playStep">
-        <div className="psHead">
-          <div className="psN">2</div>
-          <div className="psLbl">RISK + LINES</div>
-        </div>
+        <div className="psN">2</div>
         <div className="psBody">
           <div className="fakeRiskRow">
-            <img src={A('assets/svg/risk-flame.svg')} alt="" className="fakeRiskIc lo" />
-            <img src={A('assets/svg/risk-multi.svg')} alt="" className="fakeRiskIc md" />
-            <img src={A('assets/svg/risk-vortex.svg')} alt="" className="fakeRiskIc hi" />
+            <img src={A('assets/svg/risk-flame.svg')}  className="fakeRiskIc lo" alt="" />
+            <img src={A('assets/svg/risk-multi.svg')}  className="fakeRiskIc md" alt="" />
+            <img src={A('assets/svg/risk-vortex.svg')} className="fakeRiskIc hi" alt="" />
           </div>
           <div className="fakeCtrl narrow">
             <span className="fakeCtrlArrow l" />
@@ -193,22 +215,24 @@ function SlideHowToPlay() {
             <span className="fakeCtrlArrow r" />
           </div>
         </div>
-        <div className="psHint">LOW · MEDIUM · HIGH · 8–16 lines</div>
+        <div className="psLbl">RISK + LINES</div>
+        <div className="psHint">LOW · MEDIUM · HIGH · 8–16 rows</div>
       </div>
 
-      <div className="psSep" />
+      <div className="psArrow" />
 
       <div className="playStep">
-        <div className="psHead">
-          <div className="psN">3</div>
-          <div className="psLbl">PRESS PLAY</div>
-        </div>
+        <div className="psN">3</div>
         <div className="psBody">
-          <div className="fakePlay">
-            <div className="fakePlayDisc" />
-            <div className="fakePlayText">PLAY</div>
+          <div className="fakePlayWrap">
+            <div className="fakePlayBall"><Ball type={BALL_TYPES.gold} size={28} /></div>
+            <div className="fakePlay">
+              <div className="fakePlayDisc" />
+              <div className="fakePlayText">PLAY</div>
+            </div>
           </div>
         </div>
+        <div className="psLbl">PRESS PLAY</div>
         <div className="psHint">Watch the comet bounce to a slot</div>
       </div>
     </div>
@@ -256,213 +280,229 @@ function FeatureBadge({ children, label, big }) {
 }
 
 // =============================================================
-// SLIDE 2 — Plinko board with multiplier stars
-// Drawn to look like the actual cosmic peg field
+// SLIDE 2 — MULTIPLIERS: real peg field + three multiplier stars
+// + a real Ball mid-flight on a trajectory
 // =============================================================
 function SlideMultipliers() {
-  const rows = 10;
-  const pegs = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c <= r; c++) {
-      pegs.push({ x: 50 + (c - r / 2) * 5.2, y: 10 + r * 6.4, row: r, col: c });
-    }
-  }
-  const mults = [
-    { row: 3, col: 1, label: '2x', color: '#FFE695' },
-    { row: 5, col: 3, label: '3x', color: '#FF8C42' },
-    { row: 7, col: 2, label: '5x', color: '#B946FF' },
-  ];
-  const isMult = (p) => mults.find(m => m.row === p.row && m.col === p.col);
-
   return (
-    <div className="slide slideMini">
-      <svg viewBox="0 0 100 80" preserveAspectRatio="xMidYMid meet" className="miniBoard">
-        <defs>
-          <radialGradient id="pegGlow" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0" stopColor="#fff" stopOpacity="1" />
-            <stop offset="0.4" stopColor="#FFE695" stopOpacity="0.8" />
-            <stop offset="1" stopColor="#D4AF37" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        {/* Comet trail hint */}
-        <path d="M50 0 Q 40 20, 50 40 T 30 70" fill="none"
-          stroke="#FFE695" strokeWidth="0.4" strokeDasharray="1.5,1.5" opacity="0.45" />
-        {pegs.map((p, i) => {
-          const m = isMult(p);
-          if (m) {
-            return (
-              <g key={i}>
-                <circle cx={p.x} cy={p.y} r="3.4" fill={m.color} opacity="0.25" />
-                <circle cx={p.x} cy={p.y} r="2.2" fill={m.color} opacity="0.85" />
-                <text x={p.x} y={p.y + 0.7} fill="#1A0F03" fontSize="1.7"
-                  fontWeight="bold" textAnchor="middle" fontFamily="Audiowide, sans-serif"
-                  dominantBaseline="middle">{m.label}</text>
-              </g>
-            );
-          }
-          return (
-            <g key={i}>
-              <circle cx={p.x} cy={p.y} r="1.8" fill="url(#pegGlow)" opacity="0.5" />
-              <circle cx={p.x} cy={p.y} r="0.7" fill="#FFE695" />
-            </g>
-          );
-        })}
-      </svg>
+    <div className="slide miniScene">
+      <MiniBoard
+        rows={10}
+        mults={[
+          { row: 3, col: 1, value: 2, color: '#FFE695' },
+          { row: 5, col: 3, value: 3, color: '#FF8C42' },
+          { row: 7, col: 2, value: 5, color: '#B946FF' },
+        ]}
+        trajectory="M50 -2 Q 42 18, 50 38 T 28 70"
+        ballAt={{ x: 38, y: 50 }}
+        ballType={BALL_TYPES.gold}
+      />
     </div>
   );
 }
 
 // =============================================================
-// SLIDE 3 — Dispenser + curved trajectory → vortex slot
+// SLIDE 3 — RESPIN CHANCE: dispenser + ball curve + vortex slot
 // =============================================================
 function SlideRespin() {
-  const rows = 9;
-  const pegs = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c <= r; c++) {
-      pegs.push({ x: 50 + (c - r / 2) * 5.2, y: 22 + r * 5.4 });
-    }
-  }
-  const slots = [];
-  for (let i = 0; i < 10; i++) {
-    slots.push({ x: 50 + (i - 4.5) * 5.2, y: 76, vortex: i === 7 });
-  }
-
   return (
-    <div className="slide slideMini">
-      <svg viewBox="0 0 100 86" preserveAspectRatio="xMidYMid meet" className="miniBoard">
-        <defs>
-          <radialGradient id="rDisp" cx="0.5" cy="0.4" r="0.5">
-            <stop offset="0" stopColor="#FFF6D8" />
-            <stop offset="0.5" stopColor="#D4AF37" />
-            <stop offset="1" stopColor="#5C3F08" />
-          </radialGradient>
-          <radialGradient id="rVortex" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0" stopColor="#FFE695" />
-            <stop offset="0.7" stopColor="#FF8C42" />
-            <stop offset="1" stopColor="#7A1A04" />
-          </radialGradient>
-        </defs>
-
-        {/* Dispenser bowl */}
-        <circle cx="50" cy="10" r="7" fill="url(#rDisp)" stroke="#FFE695" strokeWidth="0.4" />
-        {/* Balls inside */}
-        {[
-          ['#FFB347',49,9],['#FFE695',51,9.3],['#FF6B1A',50,11],
-          ['#B946FF',48.5,10.7],['#4A9EFF',51.5,10.7],
-        ].map((b, i) => (
-          <circle key={i} cx={b[1]} cy={b[2]} r="1.1" fill={b[0]} opacity="0.95" />
-        ))}
-
-        {/* Trajectory hint */}
-        <path d="M50 18 Q 38 38, 52 56 T 76 73" fill="none"
-          stroke="#FFE695" strokeWidth="0.45" strokeDasharray="1.6,1.3" opacity="0.65" />
-
-        {/* Pegs */}
-        {pegs.map((p, i) => (
-          <g key={i}>
-            <circle cx={p.x} cy={p.y} r="1.4" fill="#FFE695" opacity="0.35" />
-            <circle cx={p.x} cy={p.y} r="0.6" fill="#FFE695" />
-          </g>
-        ))}
-
-        {/* Slot row */}
-        {slots.map((s, i) => (
-          <g key={i}>
-            <rect x={s.x - 2.3} y={s.y - 2.3} width="4.6" height="4.6"
-              rx="0.4"
-              fill={s.vortex ? 'url(#rVortex)' : 'rgba(212,175,55,0.1)'}
-              stroke={s.vortex ? '#FFE695' : 'rgba(212,175,55,0.4)'}
-              strokeWidth={s.vortex ? '0.5' : '0.25'} />
-            {s.vortex && (
-              <>
-                <circle cx={s.x} cy={s.y} r="1.5" fill="none" stroke="#FFE695" strokeWidth="0.35" />
-                <circle cx={s.x} cy={s.y} r="0.7" fill="none" stroke="#FFE695" strokeWidth="0.3" />
-                <text x={s.x} y={s.y + 0.4} fill="#1A0F03" fontSize="1.6" fontWeight="bold"
-                  textAnchor="middle" dominantBaseline="middle" fontFamily="Audiowide, sans-serif">x2</text>
-              </>
-            )}
-          </g>
-        ))}
-      </svg>
+    <div className="slide miniScene">
+      <MiniBoard
+        rows={9}
+        dispenser
+        slotRow={{ count: 10, vortexIdx: 7 }}
+        trajectory="M50 18 Q 38 38, 52 56 T 76 74"
+        ballAt={{ x: 60, y: 60 }}
+        ballType={BALL_TYPES.fire}
+      />
     </div>
   );
 }
 
 // =============================================================
-// SLIDE 4 — Multiplier-ball ribbon + coloured balls on field
+// SLIDE 4 — MULTIPLIER BALL: side ribbon of real balls + scattered
+// real coloured balls on field
 // =============================================================
+const RIBBON_BALLS = [
+  { type: { deep: '#5C3F08', glow: '#FFB347' }, label: '1x' },
+  { type: { deep: '#0A3E5C', glow: '#2090FF' }, label: '2x' },
+  { type: { deep: '#5C0A40', glow: '#B946FF' }, label: '4x' },
+  { type: { deep: '#0A4020', glow: '#3FCB7C' }, label: '6x' },
+  { type: { deep: '#3D0A5C', glow: '#E6A6FF' }, label: '8x' },
+  { type: { deep: '#7A6008', glow: '#FFE695' }, label: '10x' },
+];
 function SlideMultBall() {
-  const rows = 8;
-  const pegs = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c <= r; c++) {
-      pegs.push({ x: 50 + (c - r / 2) * 5.8, y: 24 + r * 6.4, row: r, col: c });
-    }
-  }
-  const ribbon = [
-    { c: '#FA7909',  hi: '#FFB347', label: '1x' },
-    { c: '#2AB8FF',  hi: '#9BC8FF', label: '2x' },
-    { c: '#E040A0',  hi: '#FFE695', label: '4x' },
-    { c: '#3FCB7C',  hi: '#9CFFC1', label: '6x' },
-    { c: '#B946FF',  hi: '#E6A6FF', label: '8x' },
-    { c: '#FFE695',  hi: '#FFF6D8', label: '10x' },
-  ];
-  const placedBalls = [
-    { row: 3, col: 1, c: '#FFE695', hi: '#FFF6D8' },
-    { row: 4, col: 3, c: '#FF8C42', hi: '#FFB347' },
-    { row: 6, col: 2, c: '#B946FF', hi: '#E6A6FF' },
-  ];
-
   return (
-    <div className="slide slideMini multBallSlide">
-      <div className="multBallSide">
-        {ribbon.map((b, i) => (
-          <div key={i} className="ribChip">
-            <span className="ribDot" style={{
-              background: `radial-gradient(circle at 35% 30%, ${b.hi} 0%, ${b.c} 60%, rgba(0,0,0,0.4) 100%)`,
-              boxShadow: `0 0 8px ${b.c}`,
-            }} />
-            <span className="ribLbl" style={{ color: b.hi }}>{b.label}</span>
+    <div className="slide multBallScene">
+      <div className="ribbonPanel">
+        {RIBBON_BALLS.map((b, i) => (
+          <div key={i} className="ribbonRow">
+            <Ball type={b.type} size={24} aura={false} />
+            <span className="ribbonLbl" style={{ color: b.type.glow }}>{b.label}</span>
           </div>
         ))}
       </div>
+      <MiniBoard
+        rows={8}
+        dispenser
+        scatterBalls={[
+          { row: 3, col: 1, type: RIBBON_BALLS[5].type },
+          { row: 4, col: 3, type: RIBBON_BALLS[2].type },
+          { row: 6, col: 2, type: RIBBON_BALLS[1].type },
+        ]}
+      />
+    </div>
+  );
+}
 
-      <svg viewBox="0 0 100 86" preserveAspectRatio="xMidYMid meet" className="miniBoard">
+// =============================================================
+// <MiniBoard /> — composable plinko-board illustration.
+// Pegs are gold stars, optional dispenser using dispenser.svg image,
+// optional bottom slot row with a vortex marker, optional trajectory
+// path, optional real <Ball /> rendered absolutely at SVG coords.
+// =============================================================
+function MiniBoard({ rows = 9, mults = [], dispenser = false, slotRow,
+                     trajectory, ballAt, ballType, scatterBalls = [] }) {
+  // SVG coordinate system: 100 × 86 (matches existing tutorial scale)
+  const pegs = [];
+  const topY = dispenser ? 23 : 8;
+  const stepY = (slotRow ? 6 : 7);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c <= r; c++) {
+      pegs.push({ x: 50 + (c - r / 2) * 5.6, y: topY + r * stepY, row: r, col: c });
+    }
+  }
+  const isMult = (p) => mults.find(m => m.row === p.row && m.col === p.col);
+  const scatter = (p) => scatterBalls.find(b => b.row === p.row && b.col === p.col);
+
+  // Convert SVG coords (viewBox 100x86) to CSS px for <Ball> overlay
+  const VBW = 100, VBH = 86;
+  const boardRef = useRef(null);
+  const [boardSize, setBoardSize] = useState({ w: 480, h: 412 });
+  useEffect(() => {
+    if (!boardRef.current) return;
+    const update = () => {
+      const r = boardRef.current.getBoundingClientRect();
+      setBoardSize({ w: r.width, h: r.height });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(boardRef.current);
+    return () => ro.disconnect();
+  }, []);
+  const toPx = (x, y) => ({
+    left: (x / VBW) * boardSize.w,
+    top:  (y / VBH) * boardSize.h,
+  });
+
+  return (
+    <div className="miniBoardWrap" ref={boardRef}>
+      <svg viewBox={`0 0 ${VBW} ${VBH}`} preserveAspectRatio="xMidYMid meet" className="miniBoard">
         <defs>
-          <radialGradient id="mbDisp" cx="0.5" cy="0.4" r="0.5">
-            <stop offset="0" stopColor="#FFF6D8" />
-            <stop offset="0.5" stopColor="#D4AF37" />
-            <stop offset="1" stopColor="#5C3F08" />
+          <radialGradient id="mb-peg" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0"    stopColor="#fff"    stopOpacity="1" />
+            <stop offset="0.4"  stopColor="#FFE695" stopOpacity="0.8" />
+            <stop offset="1"    stopColor="#D4AF37" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="mb-vortex" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0"   stopColor="#FFE695" />
+            <stop offset="0.7" stopColor="#FF8C42" />
+            <stop offset="1"   stopColor="#7A1A04" />
           </radialGradient>
         </defs>
-        <circle cx="50" cy="11" r="7.5" fill="url(#mbDisp)" stroke="#FFE695" strokeWidth="0.5" />
-        {[
-          ['#FFB347',48,10],['#FFE695',51,10.4],['#FF6B1A',50,12.2],
-          ['#B946FF',48,12.5],['#4A9EFF',52,11.6],
-        ].map((b, i) => (
-          <circle key={i} cx={b[1]} cy={b[2]} r="1.2" fill={b[0]} opacity="0.95" />
-        ))}
+
+        {trajectory && (
+          <path d={trajectory} fill="none" stroke="#FFE695"
+            strokeWidth="0.5" strokeDasharray="1.6,1.4" opacity="0.6" />
+        )}
 
         {pegs.map((p, i) => {
-          const pb = placedBalls.find(b => b.row === p.row && b.col === p.col);
-          if (pb) {
-            return (
-              <g key={i}>
-                <circle cx={p.x} cy={p.y} r="2.8" fill={pb.c} opacity="0.25" />
-                <circle cx={p.x} cy={p.y} r="1.8" fill={pb.c} />
-                <circle cx={p.x - 0.5} cy={p.y - 0.6} r="0.5" fill={pb.hi} />
-              </g>
-            );
-          }
+          if (isMult(p) || scatter(p)) return null; // drawn as DOM <Ball>
           return (
             <g key={i}>
-              <circle cx={p.x} cy={p.y} r="1.2" fill="#FFE695" opacity="0.35" />
-              <circle cx={p.x} cy={p.y} r="0.55" fill="#FFE695" />
+              <circle cx={p.x} cy={p.y} r="1.6" fill="url(#mb-peg)" opacity="0.5" />
+              <circle cx={p.x} cy={p.y} r="0.65" fill="#FFE695" />
+            </g>
+          );
+        })}
+
+        {/* Multiplier star labels */}
+        {mults.map((m, i) => {
+          const p = pegs.find(pp => pp.row === m.row && pp.col === m.col);
+          if (!p) return null;
+          return (
+            <g key={'m'+i}>
+              <circle cx={p.x} cy={p.y} r="3.4" fill={m.color} opacity="0.25" />
+              <circle cx={p.x} cy={p.y} r="2.2" fill={m.color} opacity="0.9" />
+              <text x={p.x} y={p.y + 0.6} fill="#1A0F03" fontSize="2"
+                fontWeight="700" textAnchor="middle" dominantBaseline="middle"
+                fontFamily="Audiowide, sans-serif">{m.value}x</text>
+            </g>
+          );
+        })}
+
+        {/* Bottom slot row */}
+        {slotRow && Array.from({ length: slotRow.count }).map((_, i) => {
+          const x = 50 + (i - (slotRow.count - 1) / 2) * 5.4;
+          const y = 78;
+          const vortex = i === slotRow.vortexIdx;
+          return (
+            <g key={'s'+i}>
+              <rect x={x - 2.4} y={y - 2.4} width="4.8" height="4.8" rx="0.5"
+                fill={vortex ? 'url(#mb-vortex)' : 'rgba(212,175,55,0.1)'}
+                stroke={vortex ? '#FFE695' : 'rgba(212,175,55,0.4)'}
+                strokeWidth={vortex ? '0.5' : '0.25'} />
+              {vortex && (
+                <>
+                  <circle cx={x} cy={y} r="1.6" fill="none" stroke="#FFE695" strokeWidth="0.35" />
+                  <circle cx={x} cy={y} r="0.8" fill="none" stroke="#FFE695" strokeWidth="0.3" />
+                  <text x={x} y={y + 0.4} fill="#1A0F03" fontSize="1.6"
+                    fontWeight="700" textAnchor="middle" dominantBaseline="middle"
+                    fontFamily="Audiowide, sans-serif">x2</text>
+                </>
+              )}
             </g>
           );
         })}
       </svg>
+
+      {/* Dispenser overlay — real PNG-ish SVG, centered on apex */}
+      {dispenser && (
+        <img
+          className="miniDispenser"
+          src={A('assets/svg/dispenser.svg')}
+          alt=""
+          style={{
+            left:  toPx(50, 11).left  - boardSize.w * 0.075,
+            top:   toPx(50, 11).top   - boardSize.h * 0.087,
+            width: boardSize.w * 0.15,
+          }}
+        />
+      )}
+
+      {/* Real-rendered ball at trajectory tip */}
+      {ballAt && ballType && (
+        <div className="miniBallOverlay"
+          style={{
+            left: toPx(ballAt.x, ballAt.y).left,
+            top:  toPx(ballAt.x, ballAt.y).top,
+          }}>
+          <Ball type={ballType} size={boardSize.w * 0.052} />
+        </div>
+      )}
+
+      {/* Scattered real balls on pegs */}
+      {scatterBalls.map((sb, i) => {
+        const p = pegs.find(pp => pp.row === sb.row && pp.col === sb.col);
+        if (!p) return null;
+        const pos = toPx(p.x, p.y);
+        return (
+          <div key={'sb'+i} className="miniBallOverlay"
+            style={{ left: pos.left, top: pos.top }}>
+            <Ball type={sb.type} size={boardSize.w * 0.045} aura={true} glowScale={0.7} />
+          </div>
+        );
+      })}
     </div>
   );
 }

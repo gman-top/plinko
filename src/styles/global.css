@@ -884,57 +884,77 @@ body { position: fixed; inset: 0; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Slide 0: HOW TO PLAY — three-step layout using actual game-like
-   chip + play button styling so the tutorial reads as the real
-   game, not as abstract icons. */
+/* Slide 0: HOW TO PLAY — 3 steps with real chip + real PLAY button */
 .playSlide {
   display: flex; align-items: center; justify-content: center;
-  gap: clamp(16px, 3vw, 48px);
+  gap: clamp(8px, 1.5vw, 22px);
   flex-wrap: wrap;
   width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
 }
 .playStep {
   display: flex; flex-direction: column; align-items: center;
   gap: 10px;
-  min-width: 150px;
-  max-width: 220px;
+  min-width: 180px;
+  max-width: 240px;
 }
-.psHead { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .psN {
-  width: 28px; height: 28px;
+  width: 26px; height: 26px;
   border-radius: 50%;
   background: linear-gradient(180deg, var(--goldHi), var(--gold));
   color: #1a0f03;
   font-family: 'Audiowide', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 0 12px rgba(212,175,55,0.6);
 }
-.psLbl {
-  font-family: 'Audiowide', sans-serif;
-  font-size: clamp(11px, 1.1vw, 13px);
-  letter-spacing: 3px;
-  color: var(--goldHi);
-  text-shadow: 0 0 8px rgba(255,224,138,.3);
-}
 .psBody {
   display: flex; flex-direction: column; align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding: 10px 0;
+  min-height: clamp(90px, 11vh, 130px);
+}
+.psLbl {
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(12px, 1.2vw, 15px);
+  letter-spacing: 3px;
+  color: var(--goldHi);
+  text-shadow: 0 0 10px rgba(255,224,138,.4);
 }
 .psHint {
   font-family: 'Inter', sans-serif;
   font-size: clamp(10px, 1vw, 12px);
   color: var(--cream); opacity: 0.7;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   text-align: center;
-  max-width: 180px;
+  max-width: 200px;
   line-height: 1.45;
 }
-.psSep {
-  width: 1px; height: clamp(90px, 10vh, 140px);
-  background: linear-gradient(180deg, transparent, var(--gold), transparent);
+.psArrow {
+  width: 36px; height: 14px;
+  background: url('/assets/svg/arrow-right.svg') center/contain no-repeat;
+  opacity: 0.5;
   align-self: center;
+  margin-top: -28px;
+  filter: drop-shadow(0 0 6px rgba(212,175,55,0.4));
+}
+
+/* Fake PLAY button with a Ball hovering above */
+.fakePlayWrap {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+}
+.fakePlayBall {
+  position: absolute;
+  top: -32px;
+  z-index: 2;
+  filter: drop-shadow(0 0 10px rgba(255,224,138,0.6));
+  animation: ballHover 1.8s ease-in-out infinite;
+}
+@keyframes ballHover {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
 }
 
 /* Fake .ctrl chip — mirrors the real game's chip styling using btn-bg.svg */
@@ -1041,44 +1061,64 @@ body { position: fixed; inset: 0; }
   z-index: 2;
 }
 
-/* Slides 2-4: mini-board SVGs */
-.slideMini {
-  width: 100%; height: 100%; padding: 4px 0;
+/* Slides 2-4: mini-board scenes */
+.miniScene, .multBallScene {
+  width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
+  gap: clamp(14px, 2vw, 36px);
+}
+.miniBoardWrap {
+  position: relative;
+  width: 100%;
+  max-width: clamp(360px, 44vw, 560px);
+  aspect-ratio: 100 / 86;
 }
 .miniBoard {
   width: 100%; height: 100%;
-  max-width: clamp(360px, 44vw, 560px);
-  max-height: 100%;
-  margin: 0 auto; display: block;
+  display: block;
 }
+.miniDispenser {
+  position: absolute;
+  filter: drop-shadow(0 0 16px rgba(255, 213, 90, .55));
+  pointer-events: none;
+  z-index: 2;
+}
+.miniBallOverlay {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 3;
+  line-height: 0;
+}
+.miniBallOverlay canvas, .ribbonRow canvas, .introBall {
+  display: block;
+}
+.fakePlayBall canvas { display: block; }
 
-/* Slide 4: ribbon of multiplier colours alongside the board */
-.multBallSlide {
-  display: flex; align-items: center; justify-content: center;
-  gap: clamp(14px, 2vw, 32px);
-}
-.multBallSide {
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 12px 14px;
+/* Slide 4: ribbon of REAL balls (canvas-rendered) with labels */
+.ribbonPanel {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 14px 16px;
   background: linear-gradient(180deg, rgba(28,20,11,.85), rgba(11,8,5,.92));
   border: 1px solid rgba(212,175,55,0.4);
   border-radius: 4px;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
   filter: drop-shadow(0 0 10px rgba(212,175,55,0.25));
 }
-.ribChip {
-  display: flex; align-items: center; gap: 10px;
+.ribbonRow {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 28px;
+}
+.ribbonRow canvas {
+  width: 28px !important;
+  height: 28px !important;
+}
+.ribbonLbl {
   font-family: 'Audiowide', sans-serif;
-  font-size: clamp(11px, 1vw, 13px);
+  font-size: clamp(11px, 1.1vw, 14px);
   letter-spacing: 1.5px;
-}
-.ribDot {
-  width: 16px; height: 16px; border-radius: 50%;
-  flex-shrink: 0;
-}
-.ribLbl {
   text-shadow: 0 0 6px currentColor;
+  min-width: 28px;
 }
 
 /* Title + description block */
@@ -1206,23 +1246,26 @@ body { position: fixed; inset: 0; }
 /* Tutorial responsive — already fullscreen on every breakpoint */
 @media (max-width: 768px) {
   .howto {
-    padding: 44px 56px 18px;
-    gap: 12px;
+    padding: 48px 56px 18px;
+    gap: 10px;
   }
   .howtoLogo { width: clamp(160px, 56vw, 240px); }
-  .playSlide { gap: 8px; }
-  .playStep { min-width: 90px; }
-  .psSep { display: none; }
+  .playSlide { gap: 6px; }
+  .playStep { min-width: 110px; }
+  .psArrow { display: none; }
   .psHint { font-size: 10px; max-width: 110px; }
   .fakeCtrl { width: 110px; height: 38px; }
   .fakeCtrl.narrow { width: 80px; }
   .fakeCtrlVal { font-size: 15px; }
   .fakePlay { width: 64px; height: 64px; }
   .fakePlayText { font-size: 13px; letter-spacing: 2px; }
-  .multBallSide { padding: 8px 10px; gap: 5px; }
-  .ribChip { font-size: 10px; }
-  .ribDot { width: 12px; height: 12px; }
-  .miniBoard { max-width: 92vw; }
+  .fakePlayBall { top: -24px; }
+  .miniScene, .multBallScene { gap: 8px; }
+  .miniBoardWrap { max-width: 88vw; }
+  .ribbonPanel { padding: 8px 10px; gap: 4px; }
+  .ribbonRow canvas { width: 22px !important; height: 22px !important; }
+  .ribbonRow { gap: 8px; min-height: 22px; }
+  .ribbonLbl { font-size: 10px; min-width: 22px; }
   .howtoDesc  { font-size: 12px; padding: 0 6px; }
   .introStart { padding: 13px 36px; font-size: 14px; letter-spacing: 4px; }
   .introArrow { width: 38px; height: 38px; }
