@@ -666,9 +666,9 @@ body { position: fixed; inset: 0; }
     font-size: 9.5px;
     letter-spacing: 1px;
   }
-  .botbar .l, .botbar .r { gap: 16px; }
-  .botbar .it span:first-child { display: none; }   /* hide "BALANCE" / "BET AMOUNT" labels */
-  .botbar .it .ic { width: 20px; height: 20px; }
+  .botbar .l, .botbar .r { gap: 20px; }
+  .botbar .it .lbl { display: none; }               /* hide every label on mobile — icons + values only */
+  .botbar .it .ic { width: 22px; height: 22px; }
   .botbar .v { font-size: 11px; }
 }
 
