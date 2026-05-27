@@ -24,10 +24,6 @@ export const useGame = create((set, get) => ({
   soundOn: false,
   cinematic: null,      // { type: 'jackpot' | 'wild' | ... }
 
-  // Currently-dropped balls live in this array — Ball.jsx subscribes
-  // to render their 3D meshes. Each entry: { id, type, bet, startedAt }
-  liveBalls: [],
-
   // --- derived ---
   cost: () => {
     const s = get();
@@ -55,18 +51,6 @@ export const useGame = create((set, get) => ({
   setBalls: (v) => set({ ballsAmount: Math.max(1, Math.min(10, v)) }),
   toggleFeature: (k) => set(s => ({ features: { ...s.features, [k]: !s.features[k] } })),
   toggleSound: () => set(s => ({ soundOn: !s.soundOn })),
-
-  spawnBall: (type, betValue) => {
-    const id = Math.random().toString(36).slice(2, 9);
-    set(s => ({
-      liveBalls: [...s.liveBalls, { id, type, bet: betValue, startedAt: performance.now() }],
-    }));
-    return id;
-  },
-
-  removeBall: (id) => set(s => ({
-    liveBalls: s.liveBalls.filter(b => b.id !== id),
-  })),
 
   setCinematic: (cin) => set({ cinematic: cin }),
 

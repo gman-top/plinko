@@ -31,68 +31,75 @@ html, body {
   -webkit-user-select: none;
 }
 body { position: fixed; inset: 0; }
-
 #root { width: 100%; height: 100%; }
 
+/* ===== FULL-VIEWPORT LAYOUT ===== */
 #stage {
   position: fixed; inset: 0;
-  overflow: hidden;
+  display: flex; flex-direction: column;
   background: var(--bg0) url('/assets/bg.png') center/cover no-repeat fixed;
 }
 #stage::before {
   content: '';
   position: absolute; inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 70% 60% at 50% 45%, transparent 0%, rgba(0,0,0,.25) 65%, rgba(0,0,0,.5) 100%);
+  background:
+    radial-gradient(ellipse 65% 60% at 50% 45%, transparent 0%, rgba(0,0,0,.25) 65%, rgba(0,0,0,.55) 100%);
 }
 
-/* Pixel-perfect 1440x1024 canvas, scaled to fit any viewport */
-#game {
-  position: absolute;
-  left: 50%; top: 50%;
-  width: 1440px; height: 1024px;
-  transform-origin: center center;
-  overflow: visible;
+.boardArea {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  z-index: 1;
 }
-
-/* --- 3D scene container fills the centre, UI overlays float above --- */
-.scene-container {
-  position: absolute;
-  left: 50%; top: 60px;
-  transform: translateX(-50%);
-  width: 780px; height: 740px;
-  z-index: 5;
-  pointer-events: none;  /* let UI overlay catch interactions */
-}
-.scene-container canvas {
-  width: 100% !important;
-  height: 100% !important;
+.board-canvas {
+  position: absolute; inset: 0;
+  width: 100% !important; height: 100% !important;
   display: block;
 }
 
-/* === LOGO === */
-.logo {
-  position: absolute;
-  left: 50px; top: 30px;
-  width: 280px; height: 140px;
-  background: url('/assets/svg/logo-plinko.svg') center/contain no-repeat;
-  filter: drop-shadow(0 0 16px rgba(255, 224, 138, .35));
-  z-index: 8;
+.bottomArea {
+  flex-shrink: 0;
+  position: relative;
+  height: 200px;
+  z-index: 3;
+}
+.bottomArea.shake { animation: shake .55s linear; }
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-5px, -3px); }
+  40% { transform: translate(6px, 3px); }
+  60% { transform: translate(-4px, 4px); }
+  80% { transform: translate(4px, -4px); }
 }
 
-/* === LEFT STATS TABLE === */
+/* ===== TOP LEFT — LOGO ===== */
+.logo {
+  position: absolute;
+  left: clamp(20px, 2.5vw, 50px);
+  top: clamp(14px, 2vh, 30px);
+  width: clamp(220px, 22vw, 320px);
+  height: clamp(110px, 12vh, 150px);
+  background: url('/assets/svg/logo-plinko.svg') center/contain no-repeat;
+  filter: drop-shadow(0 0 16px rgba(255, 224, 138, .4));
+  z-index: 8; pointer-events: none;
+}
+
+/* ===== LEFT — STATS TABLE ===== */
 .statsTbl {
   position: absolute;
-  left: 60px; top: 230px;
-  width: 360px;
+  left: clamp(24px, 3vw, 60px);
+  top: clamp(170px, 19vh, 230px);
+  width: clamp(280px, 24vw, 360px);
   font-size: 11px;
   color: var(--cream);
   z-index: 8;
 }
 .statsTbl .head {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 0.85fr 1.1fr 1fr 1.1fr;
+  gap: 10px;
   padding: 0 10px 12px;
   letter-spacing: 2px;
   font-size: 10px;
@@ -100,11 +107,16 @@ body { position: fixed; inset: 0; }
   font-weight: 600;
   border-bottom: 1px solid rgba(212, 175, 55, 0.25);
 }
-.statsTbl .rows { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; max-height: 380px; overflow: hidden; }
+.statsTbl .rows {
+  margin-top: 8px;
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: clamp(280px, 42vh, 460px);
+  overflow: hidden;
+}
 .statsTbl .r {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 0.85fr 1.1fr 1fr 1.1fr;
+  gap: 10px;
   padding: 7px 10px;
   border-bottom: 1px solid rgba(58, 43, 20, 0.35);
   font-size: 11.5px;
@@ -114,17 +126,17 @@ body { position: fixed; inset: 0; }
 .statsTbl .r .pf { font-weight: 700; }
 @keyframes rowIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
 
-/* === LEGEND (right side) === */
+/* ===== RIGHT — LEGEND + LINES + RISK ===== */
 .legend {
   position: absolute;
-  right: 60px; top: 50px;
+  right: clamp(24px, 3vw, 60px);
+  top: clamp(28px, 4vh, 60px);
   display: flex; flex-direction: column; gap: 8px;
-  z-index: 6;
-  pointer-events: none;
+  z-index: 7; pointer-events: none;
 }
 .legend .banner {
   display: flex; align-items: center; gap: 18px;
-  padding: 6px 22px;
+  padding: 7px 22px;
   background: linear-gradient(180deg, rgba(15, 11, 7, .88), rgba(5, 4, 4, .92));
   border: 1px solid rgba(212, 175, 55, 0.65);
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
@@ -145,8 +157,7 @@ body { position: fixed; inset: 0; }
   box-shadow: 0 0 6px var(--c1);
 }
 
-/* === Chamfered button shape (banner) === */
-.panel { position: absolute; }
+.panel { position: absolute; z-index: 8; }
 .panel .lbl {
   font-size: 11px; letter-spacing: 2.5px; color: var(--goldHi); font-weight: 500;
   margin-bottom: 6px; text-align: center;
@@ -179,9 +190,16 @@ body { position: fixed; inset: 0; }
   text-shadow: 0 0 8px rgba(255, 224, 138, .5);
 }
 
-/* Right-side LINES + RISK */
-.linesWrap { right: 60px; top: 180px; width: 157px; }
-.riskWrap  { right: 60px; top: 280px; width: 157px; }
+.linesWrap {
+  right: clamp(24px, 3vw, 60px);
+  top: clamp(180px, 22vh, 240px);
+  width: 157px;
+}
+.riskWrap {
+  right: clamp(24px, 3vw, 60px);
+  top: clamp(280px, 32vh, 350px);
+  width: 157px;
+}
 .riskIcons {
   height: 44px;
   position: relative;
@@ -199,16 +217,17 @@ body { position: fixed; inset: 0; }
 }
 .riskIcons .ri[data-r="MEDIUM"] { opacity: .55; }
 .riskIcons .ri[data-r="HIGH"]   { opacity: 1; }
-.riskIcons .ri.act              { transform: scale(1.15); }
+.riskIcons .ri.act { transform: scale(1.15); }
 .riskIcons .ri[data-r="LOW"].act    { opacity: 1; filter: drop-shadow(0 0 10px #3FCB7C); }
 .riskIcons .ri[data-r="MEDIUM"].act { opacity: 1; filter: drop-shadow(0 0 10px #FFE695); }
 .riskIcons .ri[data-r="HIGH"].act   { opacity: 1; filter: drop-shadow(0 0 14px #FF6B1A); }
 
-/* Bottom controls */
-.buyFeat  { left: calc(50% - 215px); bottom: 140px; width: 131px; }
-.ballsAmt { left: calc(50% - 215px); bottom: 244px; width: 131px; }
-.betAmt   { left: calc(50% + 85px);  bottom: 140px; width: 157px; }
-.autoCtrl { left: calc(50% + 85px);  bottom: 244px; width: 131px; }
+/* ===== BOTTOM CONTROLS ===== */
+.buyFeat  { left: calc(50% - 215px); bottom: 40px;  width: 131px; }
+.ballsAmt { left: calc(50% - 215px); bottom: 142px; width: 131px; }
+.betAmt   { left: calc(50% + 85px);  bottom: 40px;  width: 157px; }
+.autoCtrl { left: calc(50% + 85px);  bottom: 142px; width: 131px; }
+
 .buyFeatIcons {
   height: 44px; position: relative;
   display: flex; align-items: center; justify-content: space-around;
@@ -229,10 +248,10 @@ body { position: fixed; inset: 0; }
 .buyFeatIcons .fi.blue.act   { color: var(--blueHi);   text-shadow: 0 0 10px var(--blue);   transform: scale(1.15); }
 .buyFeatIcons .fi.wild.act   { color: var(--wildHi);   text-shadow: 0 0 10px var(--wild);   transform: scale(1.15); }
 
-/* === PLAY button (HTML overlay) === */
+/* ===== PLAY button ===== */
 .playWrap {
   position: absolute;
-  left: 50%; bottom: 110px;
+  left: 50%; bottom: 8px;
   transform: translateX(-50%);
   width: 200px; height: 200px;
   cursor: pointer; z-index: 10;
@@ -260,8 +279,6 @@ body { position: fixed; inset: 0; }
                0 0 30px rgba(255, 224, 138, 0.85);
   pointer-events: none;
 }
-
-/* light sweep masked to play disc */
 .playWrap .playDisc::after {
   content: '';
   position: absolute; inset: 0;
@@ -274,13 +291,13 @@ body { position: fixed; inset: 0; }
 }
 @keyframes playSweep { from { background-position: 200% 0; } to { background-position: -100% 0; } }
 
-/* === WIN bar (below PLAY, above info bar) === */
+/* ===== WIN BAR ===== */
 .winBar {
   position: absolute;
-  left: 50%; bottom: 46px;
+  left: 50%; top: -50px;
   transform: translateX(-50%);
   width: 400px; height: 60px;
-  z-index: 11;
+  z-index: 12;
   background: url('/assets/svg/win-bar.svg') center/100% 100% no-repeat;
   filter: drop-shadow(0 0 18px rgba(0, 169, 145, 0.45));
   display: flex; align-items: center; justify-content: center;
@@ -307,14 +324,15 @@ body { position: fixed; inset: 0; }
 .winBar.mega .num { background: linear-gradient(180deg, var(--goldHi), var(--jackpotHi) 35%, var(--jackpot) 100%); -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 0 22px rgba(255, 45, 45, 1)); }
 .winBar.loss .num { background: linear-gradient(180deg, #B8A380, var(--textDim)); -webkit-background-clip: text; background-clip: text; filter: none; }
 
-/* === Bottom info bar === */
+/* ===== BOTTOM INFO BAR ===== */
 .botbar {
   position: absolute;
-  left: 0; right: 0; bottom: 14px;
+  left: 0; right: 0; bottom: -6px;
+  height: 36px;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 64px;
+  padding: 0 clamp(20px, 3vw, 64px);
   font-size: 11px; color: var(--goldHi); letter-spacing: 1.5px;
-  z-index: 5; pointer-events: none;
+  z-index: 11; pointer-events: none;
 }
 .botbar .l, .botbar .r { display: flex; gap: 28px; align-items: center; pointer-events: auto; }
 .botbar .it {
@@ -338,7 +356,7 @@ body { position: fixed; inset: 0; }
 @keyframes gainFlash { 0% { color: var(--green); text-shadow: 0 0 14px var(--green); transform: scale(1.08); } 100% { color: var(--goldHi); transform: scale(1); } }
 @keyframes balFlash { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
-/* === Cinematic banner === */
+/* ===== Cinematic banner ===== */
 .cinema {
   position: fixed; inset: 0;
   display: flex; align-items: flex-start; justify-content: center;
@@ -346,50 +364,35 @@ body { position: fixed; inset: 0; }
   background: rgba(5, 4, 4, 0); transition: background .3s;
 }
 .cinema.on { background: rgba(5, 4, 4, 0.5); }
-.cinema .banner {
-  margin-top: 22vh; text-align: center;
-}
-.cinema .sub {
-  font-family: 'Audiowide', sans-serif;
-  font-size: 13px; letter-spacing: 8px;
-  color: var(--cAcc);
-  text-shadow: 0 0 12px var(--cAcc);
-  margin-bottom: 14px;
-}
+.cinema .banner { margin-top: 22vh; text-align: center; animation: cinIn .4s cubic-bezier(.2,1.2,.3,1.1); }
+@keyframes cinIn { from { transform: translateY(-30px) scale(.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+.cinema .sub { font-family: 'Audiowide', sans-serif; font-size: 13px; letter-spacing: 8px; color: var(--cAcc); text-shadow: 0 0 12px var(--cAcc); margin-bottom: 14px; }
 .cinema .big {
-  font-family: 'Audiowide', sans-serif;
-  font-size: 72px; letter-spacing: 10px; line-height: 1;
+  font-family: 'Audiowide', sans-serif; font-size: 72px; letter-spacing: 10px; line-height: 1;
   background: linear-gradient(180deg, var(--goldHi), var(--cAcc) 50%, var(--cAccD));
-  -webkit-background-clip: text; background-clip: text;
-  color: transparent;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 0 22px var(--cAcc));
 }
-.cinema.fire    { --cAcc: var(--wildHi); --cAccD: var(--wild); }
-.cinema.electric{ --cAcc: var(--blueHi); --cAccD: var(--blue); }
-.cinema.wild    { --cAcc: var(--purpleHi); --cAccD: var(--purple); }
-.cinema.jackpot { --cAcc: var(--jackpotHi); --cAccD: var(--jackpot); }
+.cinema.fire     { --cAcc: var(--wildHi);    --cAccD: var(--wild); }
+.cinema.electric { --cAcc: var(--blueHi);    --cAccD: var(--blue); }
+.cinema.wild     { --cAcc: var(--purpleHi);  --cAccD: var(--purple); }
+.cinema.jackpot  { --cAcc: var(--jackpotHi); --cAccD: var(--jackpot); }
 
-/* === Floating win numbers (DOM overlay from 3D world coords) === */
+/* ===== Floating win numbers (DOM overlay, positioned in canvas pixels) ===== */
+.floatLayer {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 9;
+}
 .floatNum {
-  position: absolute; pointer-events: none;
-  font-family: 'Audiowide', sans-serif; font-weight: 400;
-  font-size: 24px;
+  position: absolute;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 26px;
   text-shadow: 0 0 12px var(--fnGlow);
   color: var(--fnCol);
   animation: floatUp 1.5s ease-out forwards;
-  z-index: 8;
 }
 @keyframes floatUp {
   0%   { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
   15%  { transform: translate(-50%, -12px) scale(1.25); opacity: 1; }
   100% { transform: translate(-50%, -110px) scale(0.9); opacity: 0; }
-}
-
-.hint {
-  position: absolute;
-  bottom: 42px; left: 50%; transform: translateX(-50%);
-  font-size: 9px; letter-spacing: 2px;
-  color: rgba(138, 122, 94, 0.4);
-  font-weight: 500;
-  pointer-events: none;
 }

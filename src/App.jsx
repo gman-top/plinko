@@ -9,69 +9,44 @@ import PlayButton from './ui/PlayButton.jsx';
 import WinBar from './ui/WinBar.jsx';
 import BottomBar from './ui/BottomBar.jsx';
 import Cinematic from './ui/Cinematic.jsx';
+import FloatNumbers from './ui/FloatNumbers.jsx';
 
 /**
- * Top-level orchestrator. Lays out:
- *   #stage          — fixed full-viewport, holds the Figma bg image
- *     #game         — pixel-perfect 1440x1024 design, css-scaled to viewport
- *       .logo
- *       .statsTbl   (left)
- *       <Scene>     (the 3D Plinko canvas)
- *       .legend     (right, 6-colour ball legend)
- *       LINES / RISK (right)
- *       BUY / BALLS / BET / AUTO (bottom flanking)
- *       PLAY        (centre bottom)
- *       WIN bar     (below PLAY)
- *       .botbar     (sound/menu + balance/bet)
+ * Full-viewport flex layout — no fixed 1440x1024 frame.
+ *   #stage         flex column, fills viewport
+ *     .boardArea   flex:1, holds the canvas + UI overlays
+ *     .bottomArea  fixed-height row with PLAY + flanking controls
  */
 export default function App() {
-  const gameRef = useRef(null);
+  const bottomRef = useRef(null);
 
-  // Fit the fixed 1440×1024 design into any viewport
+  // Screen shake (dispatched by Scene on big wins)
   useEffect(() => {
-    const fit = () => {
-      const vv = window.visualViewport;
-      const w = vv ? vv.width : window.innerWidth;
-      const h = vv ? vv.height : window.innerHeight;
-      const s = Math.min(w / 1440, h / 1024) * 0.98;
-      if (gameRef.current) {
-        gameRef.current.style.transform = `translate(-50%, -50%) scale(${s})`;
-      }
+    const onShake = () => {
+      if (!bottomRef.current) return;
+      bottomRef.current.classList.remove('shake');
+      void bottomRef.current.offsetWidth;
+      bottomRef.current.classList.add('shake');
     };
-    fit();
-    window.addEventListener('resize', fit);
-    window.addEventListener('orientationchange', fit);
-    window.addEventListener('load', fit);
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', fit);
-      window.visualViewport.addEventListener('scroll', fit);
-    }
-    // Run twice on next frames so fonts/layout settle before measuring
-    requestAnimationFrame(() => requestAnimationFrame(fit));
-    return () => {
-      window.removeEventListener('resize', fit);
-      window.removeEventListener('orientationchange', fit);
-      window.removeEventListener('load', fit);
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', fit);
-        window.visualViewport.removeEventListener('scroll', fit);
-      }
-    };
+    window.addEventListener('plinko-shake', onShake);
+    return () => window.removeEventListener('plinko-shake', onShake);
   }, []);
 
   return (
     <div id="stage">
-      <div id="game" ref={gameRef}>
+      <div className="boardArea">
+        <Scene />
         <Logo />
         <HistoryTable />
-        <Scene />
         <Legend />
         <RightControls />
+        <FloatNumbers />
+      </div>
+      <div className="bottomArea" ref={bottomRef}>
+        <WinBar />
         <BottomControls />
         <PlayButton />
-        <WinBar />
         <BottomBar />
-        <div className="hint">SPACE drop · F features · I info · ESC close</div>
       </div>
       <Cinematic />
     </div>
