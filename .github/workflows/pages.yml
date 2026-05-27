@@ -22,9 +22,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (Vite — production base /plinko/)
+        run: npm run build
+
+      - name: Add SPA fallback (.nojekyll + 404.html copy)
+        run: |
+          touch dist/.nojekyll
+          cp dist/index.html dist/404.html
+
       - uses: actions/configure-pages@v4
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: dist
+
       - id: deployment
         uses: actions/deploy-pages@v4
