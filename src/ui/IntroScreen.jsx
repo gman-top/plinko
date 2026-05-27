@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useGame } from '../state/gameStore.js';
 import * as Sounds from '../audio/sounds.js';
 
@@ -48,23 +49,26 @@ export default function IntroScreen() {
   const prev = () => { Sounds.playClick(); setSlide(s => (s + 3) % 4); };
   const next = () => { Sounds.playClick(); setSlide(s => (s + 1) % 4); };
 
-  return (
+  return createPortal((
     <div className={`intro ${phase}`}>
       <div className="introBg" />
       <div className="introGlow" />
 
       {phase === 'loading' && (
         <div className="introLoad">
-          <div className="aigoMark">
-            <div className="aigoDot a" />
-            <div className="aigoDot b" />
-            <div className="aigoDot c" />
-          </div>
-          <div className="aigoName">AIGO<span>STUDIOS</span></div>
+          <img className="loadLogo" src={ASSET('assets/svg/logo-plinko.svg')} alt="PLINKO GONE WILD" />
           <div className="loadBar">
             <div className="loadFill" style={{ width: `${(progress * 100).toFixed(1)}%` }} />
           </div>
           <div className="loadLbl">LOADING · {(progress * 100).toFixed(0)}%</div>
+          <div className="loadFoot">
+            <div className="aigoMark sm">
+              <div className="aigoDot a" />
+              <div className="aigoDot b" />
+              <div className="aigoDot c" />
+            </div>
+            <div className="aigoName sm">AIGO<span>STUDIOS</span></div>
+          </div>
         </div>
       )}
 
@@ -120,7 +124,7 @@ export default function IntroScreen() {
         </div>
       )}
     </div>
-  );
+  ), document.body);
 }
 
 // === Slide 1 — Three triangle badges (features overview) =============
