@@ -240,14 +240,20 @@ export default function Scene() {
     const st = stateRef.current;
     const type = BALL_TYPES[typeId] || BALL_TYPES.gold;
     const x = st.cx + (Math.random() - 0.5) * 4;
-    const y = st.dispenser ? st.dispenser.y + st.dispenser.r * 0.4 : st.apex.y;
+    // Spawn just below the dispenser drop chute so the ball reads as
+    // coming OUT of the dispenser, and well below the rail apex where
+    // the two diagonals converge (so it can't be eaten by the rail
+    // collision the moment it appears).
+    const y = st.dispenser
+      ? st.dispenser.y + st.dispenser.r * 0.92
+      : st.apex.y + st.sp * 0.6;
     st.balls.push({
       id: Math.random().toString(36).slice(2),
       x, y, vx: (Math.random() - 0.5) * 60, vy: 0,
       r: st.ballR, type, bet,
       trail: [], settled: false, settleAt: 0,
-      bonusMult: 1,                    // accumulated multiplier-star bonus
-      hitMultStars: new Set(),         // which multStars already counted
+      bonusMult: 1,
+      hitMultStars: new Set(),
     });
   }
 
@@ -1026,22 +1032,32 @@ export default function Scene() {
 }
 
 // Bounce a ball off an angled rail (line segment apex→base).
-// Inward normal points toward the triangle centre. If the ball has
-// crossed past the line (signed distance < ballRadius), we push it
-// back inside and reflect its velocity component normal to the rail.
+//
+// Inward normal points toward the triangle centre.
+// For the LEFT rail (tangent goes down-LEFT, tx<0 ty>0), the inward
+// normal is the CW rotation of the tangent:    ( ty, -tx)  → (+, +)
+// For the RIGHT rail (tangent goes down-RIGHT, tx>0 ty>0), the inward
+// normal is the CCW rotation of the tangent:   (-ty,  tx)  → (-, +)
+//
+// We also clip to the segment range so balls above the apex (or
+// past the base) aren't yanked back by an imaginary infinite line.
 function reflectOffRail(b, apex, base, isLeft) {
   const dx = base.x - apex.x, dy = base.y - apex.y;
   const len = Math.hypot(dx, dy);
   if (len < 0.001) return;
   const tx = dx / len, ty = dy / len;
-  // Inward normal — rotate the apex→base tangent 90° toward centre.
-  // Left rail: tangent goes down-LEFT, inward = upper-RIGHT (CW rotate by 90°)
-  // Right rail: tangent goes down-RIGHT, inward = upper-LEFT (CCW rotate by 90°)
-  const nx = isLeft ? -ty :  ty;
-  const ny = isLeft ?  tx : -tx;
+  // Inward normal (correct sign — was inverted, sending balls outward)
+  const nx = isLeft ?  ty : -ty;
+  const ny = isLeft ? -tx :  tx;
 
   const px = b.x - apex.x, py = b.y - apex.y;
-  const signed = px * nx + py * ny;  // > 0 = inside
+
+  // Segment-range check — only react if the ball's projection onto the
+  // apex→base axis is inside [0, len].
+  const along = px * tx + py * ty;
+  if (along < -b.r || along > len + b.r) return;
+
+  const signed = px * nx + py * ny;  // > 0 = inside the triangle
   if (signed >= b.r) return;
   const overlap = b.r - signed;
   b.x += nx * overlap;
