@@ -393,12 +393,23 @@ body { position: fixed; inset: 0; }
 .cinema.on { background: rgba(5, 4, 4, 0.5); }
 .cinema .banner { margin-top: 22vh; text-align: center; animation: cinIn .4s cubic-bezier(.2,1.2,.3,1.1); }
 @keyframes cinIn { from { transform: translateY(-30px) scale(.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
-.cinema .sub { font-family: 'Audiowide', sans-serif; font-size: 13px; letter-spacing: 8px; color: var(--cAcc); text-shadow: 0 0 12px var(--cAcc); margin-bottom: 14px; }
+.cinema .sub {
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(10px, 1.4vw, 14px);
+  letter-spacing: clamp(4px, 0.8vw, 8px);
+  color: var(--cAcc); text-shadow: 0 0 12px var(--cAcc); margin-bottom: 14px;
+}
 .cinema .big {
-  font-family: 'Audiowide', sans-serif; font-size: 72px; letter-spacing: 10px; line-height: 1;
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(36px, 8.5vw, 72px);
+  letter-spacing: clamp(4px, 1vw, 10px);
+  line-height: 1;
+  padding: 0 16px;
+  max-width: 92vw;
   background: linear-gradient(180deg, var(--goldHi), var(--cAcc) 50%, var(--cAccD));
   -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 0 22px var(--cAcc));
+  word-break: break-word;
 }
 .cinema.fire     { --cAcc: var(--wildHi);    --cAccD: var(--wild); }
 .cinema.electric { --cAcc: var(--blueHi);    --cAccD: var(--blue); }
@@ -524,10 +535,10 @@ body { position: fixed; inset: 0; }
 .mobileBrand {
   display: none;
   position: fixed;
-  top: 14px; left: 16px;
-  width: 96px; height: 34px;
+  top: 10px; left: 14px;
+  width: 130px; height: 50px;
   background: url('/assets/svg/logo-plinko.svg') left center / contain no-repeat;
-  filter: drop-shadow(0 0 10px rgba(212,175,55,.55));
+  filter: drop-shadow(0 0 12px rgba(212,175,55,.6));
   z-index: 25;
   pointer-events: none;
 }

@@ -95,6 +95,14 @@ export default function Scene() {
     ro.observe(canvas);
     resize();
 
+    // Mobile Safari's viewport often settles after a moment as the
+    // address bar collapses or the address bar height is reported
+    // late. Fire follow-up resizes so the canvas matches the final
+    // visible area without the user having to tap to nudge it.
+    const lateResizes = [100, 350, 1000, 2500].map(d => setTimeout(resize, d));
+    const onVisualResize = () => resize();
+    window.visualViewport?.addEventListener('resize', onVisualResize);
+
     let raf = 0;
     const loop = (now) => {
       const st = stateRef.current;
@@ -105,7 +113,12 @@ export default function Scene() {
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(raf);
+      lateResizes.forEach(clearTimeout);
+      window.visualViewport?.removeEventListener('resize', onVisualResize);
+    };
   }, []);
 
   useEffect(() => {
