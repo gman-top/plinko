@@ -37,6 +37,9 @@ export default function Scene() {
     baseL: { x: 0, y: 0 }, baseR: { x: 0, y: 0 },
     pegR: 6, ballR: 9,
     balls: [], particles: [], floats: [],
+    dispenserBalls: [],         // real-physics objects bouncing inside the bowl
+    dispenserSig: '',           // cache key — re-init balls when bowl resizes
+    nextDispKick: 0,
     lastT: performance.now(),
     nextMultAt: performance.now() + 4000,
     nextShootAt: performance.now() + 5000,
@@ -273,8 +276,136 @@ export default function Scene() {
     });
   }
 
+  // ===== Dispenser physics =====
+  // 15 balls live inside the dispenser bowl with real gravity, wall
+  // collisions, and ball-ball collisions. The bowl ring itself doesn't
+  // move, but a periodic random "kick" keeps the pile jostling so the
+  // motion stays alive without simulating actual stirring forces.
+  function initDispenserBalls() {
+    const st = stateRef.current;
+    if (!st.dispenser) return;
+    const sig = `${st.dispenser.x.toFixed(0)}-${st.dispenser.y.toFixed(0)}-${st.dispenser.r.toFixed(0)}`;
+    if (st.dispenserSig === sig && st.dispenserBalls.length === 15) return;
+    st.dispenserSig = sig;
+
+    const { x: cx, y: cy, r } = st.dispenser;
+    const br = r * 0.20;
+    // Starting layout (matches the visual pile we had) — physics will
+    // settle them naturally afterwards.
+    const start = [
+      // bottom row
+      { ox: -0.55, oy:  0.40, c: 'orange' },
+      { ox: -0.22, oy:  0.50, c: 'red'    },
+      { ox:  0.05, oy:  0.55, c: 'yellow' },
+      { ox:  0.30, oy:  0.45, c: 'blue'   },
+      { ox:  0.55, oy:  0.35, c: 'orange' },
+      // mid rows
+      { ox: -0.38, oy:  0.10, c: 'purple' },
+      { ox: -0.10, oy:  0.18, c: 'orange' },
+      { ox:  0.18, oy:  0.20, c: 'pink'   },
+      { ox:  0.40, oy:  0.08, c: 'orange' },
+      { ox: -0.25, oy: -0.15, c: 'orange' },
+      { ox:  0.00, oy: -0.10, c: 'red'    },
+      { ox:  0.25, oy: -0.18, c: 'yellow' },
+      // upper
+      { ox: -0.12, oy: -0.35, c: 'blue'   },
+      { ox:  0.12, oy: -0.32, c: 'orange' },
+      { ox:  0.00, oy: -0.50, c: 'purple' },
+    ];
+    st.dispenserBalls = start.map(s => ({
+      x: cx + s.ox * r,
+      y: cy + s.oy * r,
+      vx: (Math.random() - 0.5) * 30,
+      vy: (Math.random() - 0.5) * 30,
+      r: br,
+      c: s.c,
+    }));
+    st.nextDispKick = performance.now() + 800;
+  }
+
+  function stepDispenser(dt, now) {
+    const st = stateRef.current;
+    if (!st.dispenser) return;
+    initDispenserBalls();
+    const { x: cx, y: cy, r: bowlR } = st.dispenser;
+    const innerR = bowlR * 0.82;          // ball centres must stay inside this
+    const gravity = 320;                  // gentle pull toward bottom of bowl
+    const linDrag = 0.985;                // air friction
+    const wallRest = 0.42;                // bowl wall bounciness
+    const ballRest = 0.35;                // ball-ball bounciness
+    const balls = st.dispenserBalls;
+
+    // Sub-step for stability when balls are stacked
+    const SUB = 3;
+    const sdt = dt / SUB;
+    for (let s = 0; s < SUB; s++) {
+      // Integrate gravity + position
+      for (const b of balls) {
+        b.vy += gravity * sdt;
+        b.vx *= linDrag;
+        b.vy *= linDrag;
+        b.x += b.vx * sdt;
+        b.y += b.vy * sdt;
+      }
+      // Bowl wall (circular boundary) — keep ball centre inside `innerR`
+      for (const b of balls) {
+        const dx = b.x - cx, dy = b.y - cy;
+        const d  = Math.hypot(dx, dy);
+        const maxD = innerR - b.r;
+        if (d > maxD && d > 0.001) {
+          const nx = dx / d, ny = dy / d;
+          b.x = cx + nx * maxD;
+          b.y = cy + ny * maxD;
+          const vDot = b.vx * nx + b.vy * ny;
+          if (vDot > 0) {
+            b.vx -= (1 + wallRest) * vDot * nx;
+            b.vy -= (1 + wallRest) * vDot * ny;
+          }
+        }
+      }
+      // Ball-ball collisions (O(n²), n=15 → 105 pairs, cheap)
+      for (let i = 0; i < balls.length; i++) {
+        for (let j = i + 1; j < balls.length; j++) {
+          const a = balls[i], b = balls[j];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const minD = a.r + b.r;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < minD * minD && d2 > 0.0001) {
+            const d = Math.sqrt(d2);
+            const nx = dx / d, ny = dy / d;
+            const overlap = minD - d;
+            a.x -= nx * overlap * 0.5;
+            a.y -= ny * overlap * 0.5;
+            b.x += nx * overlap * 0.5;
+            b.y += ny * overlap * 0.5;
+            const relV = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+            if (relV < 0) {
+              const impulse = (1 + ballRest) * relV * 0.5;
+              a.vx += impulse * nx;
+              a.vy += impulse * ny;
+              b.vx -= impulse * nx;
+              b.vy -= impulse * ny;
+            }
+          }
+        }
+      }
+    }
+
+    // Periodic random kick — keeps the pile alive forever instead of
+    // settling into a static stack after a couple of seconds.
+    if (now > st.nextDispKick) {
+      const b = balls[Math.floor(Math.random() * balls.length)];
+      // Upward + sideways shove
+      b.vx += (Math.random() - 0.5) * 220;
+      b.vy -= 80 + Math.random() * 160;
+      st.nextDispKick = now + 700 + Math.random() * 1400;
+    }
+  }
+
   function step(dt, now) {
     const st = stateRef.current;
+    // ----- Dispenser ball physics (real gravity inside the bowl) -----
+    stepDispenser(dt, now);
     const gravity = 1400;
     const drag = 0.999;
     const SUB = 5;
@@ -789,38 +920,11 @@ export default function Scene() {
     dg.addColorStop(1, '#050404');
     ctx.fillStyle = dg;
     ctx.beginPath(); ctx.arc(x, y, r * 0.84, 0, Math.PI * 2); ctx.fill();
-    const t = now / 1000;
-    // === Triangular ball pile at the bottom of the bowl ===
-    // 15 balls stacked in 5 rows (5,4,3,2,1) — bottom row sits in
-    // the lower arc of the bowl, each row above sits in the gaps of
-    // the row below it (real packing). Coordinates are normalised to
-    // the bowl radius `r` so the pile rescales with the dispenser.
-    //
-    // The whole pile ROCKS gently left-right on a 2.4s sine, and the
-    // light source rotates around each ball on a 6s loop so the
-    // highlight visibly moves (the balls read as slowly spinning).
-    const cluster = [
-      // Row 1 (bottom arc) — 5 balls
-      { ox: -0.62, oy:  0.46, c: 'orange' },
-      { ox: -0.32, oy:  0.60, c: 'red'    },
-      { ox:  0.00, oy:  0.64, c: 'yellow' },
-      { ox:  0.32, oy:  0.60, c: 'blue'   },
-      { ox:  0.62, oy:  0.46, c: 'orange' },
-      // Row 2 — 4 balls in the gaps above row 1
-      { ox: -0.46, oy:  0.20, c: 'purple' },
-      { ox: -0.15, oy:  0.32, c: 'orange' },
-      { ox:  0.15, oy:  0.32, c: 'pink'   },
-      { ox:  0.46, oy:  0.20, c: 'orange' },
-      // Row 3 — 3 balls
-      { ox: -0.30, oy: -0.02, c: 'orange' },
-      { ox:  0.00, oy:  0.06, c: 'red'    },
-      { ox:  0.30, oy: -0.02, c: 'yellow' },
-      // Row 4 — 2 balls
-      { ox: -0.15, oy: -0.24, c: 'blue'   },
-      { ox:  0.15, oy: -0.24, c: 'orange' },
-      // Row 5 (top of pile) — 1 ball
-      { ox:  0.00, oy: -0.44, c: 'purple' },
-    ];
+    // === Render the physics-driven dispenser balls ===
+    // Positions / velocities live in stateRef.current.dispenserBalls
+    // (updated each frame by stepDispenser with real gravity, wall
+    // bouncing, and ball-ball collisions). Drawing is just paint —
+    // we render bottom→top so balls deeper in the pile read first.
     const COLS = {
       orange: ['#FFE695', '#FA7909', '#5C3F08'],
       yellow: ['#FFFFFF', '#FFE695', '#7A6008'],
@@ -829,32 +933,12 @@ export default function Scene() {
       purple: ['#E6A6FF', '#B946FF', '#3D0A5C'],
       pink:   ['#FFB6E0', '#E040A0', '#5C0A40'],
     };
-    // Pile sway — ~±8° rocking around bowl centre, visible without
-    // being distracting
-    const sway = Math.sin(now / 2100) * 0.14;
-    const cosS = Math.cos(sway), sinS = Math.sin(sway);
-    const br = r * 0.20;
-    // Draw bottom→top so upper-pile balls visually sit on top
-    for (let i = 0; i < cluster.length; i++) {
-      const { ox, oy, c } = cluster[i];
-      const [c0, c1, c2] = COLS[c];
-      // Two-frequency jiggle per ball so the motion looks organic
-      // (one slow sinusoid + one faster, smaller one offset in phase).
-      // Different phases per ball so the pile shifts visibly like
-      // loose marbles in a bowl.
-      const phi = i * 0.55;
-      const jx = Math.sin(t * 1.6 + phi) * 2.4
-              + Math.sin(t * 2.7 + phi * 1.7) * 1.1;
-      const jy = Math.cos(t * 1.9 + phi) * 1.8
-              + Math.cos(t * 3.1 + phi * 1.4) * 0.9;
-      const rx = ox * cosS - oy * sinS;
-      const ry = ox * sinS + oy * cosS;
-      const bx = x + (rx * r) + jx;
-      const by = y + (ry * r) + jy;
-      // === Clean Figma-style ball: body radial gradient + bright spot.
-      // No shadowBlur halo, no rim light, no clipping tricks — keeps
-      // the balls crisp and "sitting in the bowl" instead of smearing
-      // colour into each other.
+    // Render order: low Y first (back of the pile) → high Y last (front)
+    const sorted = [...st.dispenserBalls].sort((a, b) => a.y - b.y);
+    for (let i = 0; i < sorted.length; i++) {
+      const b = sorted[i];
+      const [c0, c1, c2] = COLS[b.c];
+      const bx = b.x, by = b.y, br = b.r;
       const bg = ctx.createRadialGradient(
         bx - br * 0.32, by - br * 0.38, br * 0.08,
         bx, by, br
@@ -864,14 +948,18 @@ export default function Scene() {
       bg.addColorStop(1,    c2);
       ctx.fillStyle = bg;
       ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
-      // Single small specular dot — orbits faster (1.4s per ball)
-      // so each ball clearly reads as spinning in place.
-      const spin = now / 1400 + i * 0.6;
-      const hx = bx + Math.cos(spin) * br * 0.32;
-      const hy = by - br * 0.34 + Math.sin(spin) * br * 0.14;
+      // Specular highlight follows the velocity direction — a ball
+      // moving up-right shows its highlight up-right (looks like it's
+      // rolling). Falls back to upper-left when nearly still.
+      const speed = Math.hypot(b.vx, b.vy);
+      let hox = -0.35, hoy = -0.4;
+      if (speed > 20) {
+        hox = -b.vx / speed * 0.36;
+        hoy = -Math.abs(b.vy) / speed * 0.36 - 0.15;
+      }
       ctx.fillStyle = 'rgba(255,255,255,0.92)';
       ctx.beginPath();
-      ctx.arc(hx, hy, br * 0.22, 0, Math.PI * 2);
+      ctx.arc(bx + hox * br, by + hoy * br, br * 0.22, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.fillStyle = '#050404';
