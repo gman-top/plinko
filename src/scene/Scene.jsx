@@ -829,17 +829,24 @@ export default function Scene() {
       purple: ['#E6A6FF', '#B946FF', '#3D0A5C'],
       pink:   ['#FFB6E0', '#E040A0', '#5C0A40'],
     };
-    // Gentle pile sway — ~±5° rocking around bowl centre (subtle)
-    const sway = Math.sin(now / 2800) * 0.09;
+    // Pile sway — ~±8° rocking around bowl centre, visible without
+    // being distracting
+    const sway = Math.sin(now / 2100) * 0.14;
     const cosS = Math.cos(sway), sinS = Math.sin(sway);
     const br = r * 0.20;
     // Draw bottom→top so upper-pile balls visually sit on top
     for (let i = 0; i < cluster.length; i++) {
       const { ox, oy, c } = cluster[i];
       const [c0, c1, c2] = COLS[c];
-      const phi = i * 0.65;
-      const jx = Math.sin(t * 1.3 + phi) * 0.25;
-      const jy = Math.cos(t * 1.5 + phi) * 0.25;
+      // Two-frequency jiggle per ball so the motion looks organic
+      // (one slow sinusoid + one faster, smaller one offset in phase).
+      // Different phases per ball so the pile shifts visibly like
+      // loose marbles in a bowl.
+      const phi = i * 0.55;
+      const jx = Math.sin(t * 1.6 + phi) * 2.4
+              + Math.sin(t * 2.7 + phi * 1.7) * 1.1;
+      const jy = Math.cos(t * 1.9 + phi) * 1.8
+              + Math.cos(t * 3.1 + phi * 1.4) * 0.9;
       const rx = ox * cosS - oy * sinS;
       const ry = ox * sinS + oy * cosS;
       const bx = x + (rx * r) + jx;
@@ -857,11 +864,11 @@ export default function Scene() {
       bg.addColorStop(1,    c2);
       ctx.fillStyle = bg;
       ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
-      // Single small specular dot — slowly orbits the upper hemisphere
-      // so each ball reads as gently spinning in place.
-      const spin = now / 2400 + i * 0.5;
-      const hx = bx + Math.cos(spin) * br * 0.30;
-      const hy = by - br * 0.34 + Math.sin(spin) * br * 0.10;
+      // Single small specular dot — orbits faster (1.4s per ball)
+      // so each ball clearly reads as spinning in place.
+      const spin = now / 1400 + i * 0.6;
+      const hx = bx + Math.cos(spin) * br * 0.32;
+      const hy = by - br * 0.34 + Math.sin(spin) * br * 0.14;
       ctx.fillStyle = 'rgba(255,255,255,0.92)';
       ctx.beginPath();
       ctx.arc(hx, hy, br * 0.22, 0, Math.PI * 2);
