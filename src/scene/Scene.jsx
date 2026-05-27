@@ -3,36 +3,46 @@ import { useGame } from '../state/gameStore.js';
 import { BALL_TYPES } from '../state/config.js';
 
 /**
- * Single-canvas Plinko renderer.
+ * PLINKO GONE COSMIC — single-canvas re-interpretation.
  *
- * The previous R3F + Rapier implementation was visually noisy and ran
- * slowly on the user's machine. This version is plain Canvas 2D with
- * Euler-integrated physics — orders of magnitude smaller bundle and
- * effectively zero startup cost, while keeping the premium look
- * (multi-stop radial gradients, peg-hit flashes, ball trails,
- * cinematic gold-comet rails, dispenser, particle sprays).
+ * - Pegs are TWINKLING STARS, each with its own phase and cross-flare.
+ * - Behind them: a drifting nebula (3 large soft gradient clouds that
+ *   slowly pan, hue-shifting between gold / amber / rose).
+ * - Subtle constellation lines link nearby pegs (precomputed at
+ *   build-time of the geometry, drawn with low alpha + flicker).
+ * - Shooting stars cross the background every 8-14s.
  *
- * The canvas fills its parent (.boardArea) which is itself full-flex,
- * so the game expands to fit ANY viewport. All geometry is recomputed
- * on resize so the pyramid always sits cleanly inside the safe zone
- * between the side panels and the bottom controls.
+ *  NEW GAMEPLAY: MULTIPLIER STARS
+ *  ------------------------------
+ *  Every 6-10 seconds while you're playing, ONE random peg becomes
+ *  a glowing ×2 / ×3 / ×5 multiplier star for 8 seconds. If the ball
+ *  passes through it, the multiplier compounds with the slot value at
+ *  landing. Multiple multiplier stars can chain on a single drop —
+ *  hit ×2 then ×3 and you get a ×6 bonus on top of the slot.
+ *
+ *  The ball is now a cosmic comet with a stronger aura, and big wins
+ *  emit a "supernova" burst in the centre of the slot row.
  */
 export default function Scene() {
   const canvasRef = useRef(null);
   const stateRef  = useRef({
-    dpr: 1,
-    w: 0, h: 0,
+    dpr: 1, w: 0, h: 0,
     pegs: [], slots: [], slotMs: [],
+    constellations: [],         // [{a:peg, b:peg, brightness}]
+    multStars: [],              // [{pegIndex, value, spawnedAt, ttl}]
+    shootingStars: [],          // [{x,y,vx,vy,life,decay,len}]
+    nebula: [],                 // [{x,y,vx,vy,r,hue}]
     cx: 0, cy: 0, sp: 0,
     apex: { x: 0, y: 0 },
     baseL: { x: 0, y: 0 }, baseR: { x: 0, y: 0 },
     pegR: 6, ballR: 9,
     balls: [], particles: [], floats: [],
     lastT: performance.now(),
+    nextMultAt: performance.now() + 4000,
+    nextShootAt: performance.now() + 5000,
     rows: 12, risk: 'HIGH', features: { mult: true },
   });
 
-  // ----- subscribe to store changes that affect layout / physics -----
   useEffect(() => {
     const apply = (s) => {
       const st = stateRef.current;
@@ -45,14 +55,11 @@ export default function Scene() {
     apply(useGame.getState());
     const unsub = useGame.subscribe((s, prev) => {
       if (s.rows !== prev.rows || s.risk !== prev.risk
-          || s.features !== prev.features) {
-        apply(s);
-      }
+          || s.features !== prev.features) apply(s);
     });
     return unsub;
   }, []);
 
-  // ----- the canvas sizing + animation loop -----
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -69,8 +76,8 @@ export default function Scene() {
       const st = stateRef.current;
       st.dpr = dpr; st.w = w; st.h = h;
       computeGeometry();
+      initNebula();
     };
-
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
     resize();
@@ -80,55 +87,46 @@ export default function Scene() {
       const st = stateRef.current;
       const dt = Math.min(0.05, (now - st.lastT) / 1000);
       st.lastT = now;
-      step(dt);
+      step(dt, now);
       draw(ctx, now);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-
-    return () => {
-      ro.disconnect();
-      cancelAnimationFrame(raf);
-    };
+    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
   }, []);
 
-  // ----- drop listener (PlayButton dispatches a window event) -----
   useEffect(() => {
     const onDrop = (e) => spawn(e.detail.typeId, e.detail.bet);
     window.addEventListener('plinko-drop', onDrop);
     return () => window.removeEventListener('plinko-drop', onDrop);
   }, []);
 
-  // ----- internal helpers (close over stateRef) -----
+  // ---------- GEOMETRY -----------------------------------------------
   function computeGeometry() {
     const st = stateRef.current;
     if (!st.w || !st.h) return;
     const r = st.rows;
-    const topPegs    = 3;
+    const topPegs = 3;
     const bottomPegs = topPegs + r - 1;
-    const slotCount  = bottomPegs - 1;
+    const slotCount = bottomPegs - 1;
 
-    // Safe zone: keep gap from the side panels + top/bottom UI rows
-    const sideMargin   = Math.max(120, st.w * 0.16);
-    const topMargin    = 100;
+    const sideMargin = Math.max(140, st.w * 0.17);
+    const topMargin = 110;
     const bottomMargin = 70;
     const availW = st.w - sideMargin * 2;
     const availH = st.h - topMargin - bottomMargin;
 
     const sp = Math.min(availW / bottomPegs, availH / (r + 1), 56);
     const cx = st.w / 2;
-
     const pyramidH = (r - 1) * sp;
-    const apexY    = topMargin + (availH - pyramidH - sp) / 2;
+    const apexY = topMargin + (availH - pyramidH - sp) / 2;
     const slotRowY = apexY + pyramidH + sp * 0.55;
 
-    st.sp = sp;
-    st.cx = cx;
-    st.cy = (apexY + slotRowY) / 2;
+    st.sp = sp; st.cx = cx; st.cy = (apexY + slotRowY) / 2;
     st.pegR = Math.max(4, sp * 0.13);
     st.ballR = Math.max(7, sp * 0.22);
 
-    // Pegs
+    // Pegs (= stars) — give each its own twinkle phase
     st.pegs = [];
     for (let i = 0; i < r; i++) {
       const pegs = topPegs + i;
@@ -136,7 +134,13 @@ export default function Scene() {
       const sx = cx - rowW / 2;
       const y = apexY + i * sp;
       for (let j = 0; j < pegs; j++) {
-        st.pegs.push({ x: sx + j * sp, y, r: st.pegR, lastHit: -9999 });
+        st.pegs.push({
+          x: sx + j * sp, y, r: st.pegR,
+          lastHit: -9999,
+          phase: Math.random() * Math.PI * 2,
+          rate: 0.7 + Math.random() * 1.2,
+          row: i, col: j,
+        });
       }
     }
 
@@ -153,16 +157,67 @@ export default function Scene() {
     }
     st.slotRowY = slotRowY;
 
-    // Triangle rail anchor points
     const halfBase = (bottomPegs - 1) * sp / 2 + sp * 0.95;
-    st.apex  = { x: cx, y: apexY - sp * 0.65 };
+    st.apex = { x: cx, y: apexY - sp * 0.65 };
     st.baseL = { x: cx - halfBase, y: slotRowY + slotH * 0.6 };
     st.baseR = { x: cx + halfBase, y: slotRowY + slotH * 0.6 };
-
-    // Dispenser position
     st.dispenser = { x: cx, y: apexY - sp * 1.5, r: Math.min(58, sp * 1.4) };
+
+    // Constellation links: for each peg, connect to its nearest 2-3
+    // neighbours in the next row (so we draw faint diagonal lines that
+    // look like real constellation strands without crossing chaos).
+    st.constellations = [];
+    const byRow = {};
+    for (let i = 0; i < st.pegs.length; i++) {
+      const p = st.pegs[i];
+      (byRow[p.row] = byRow[p.row] || []).push({ ...p, idx: i });
+    }
+    Object.keys(byRow).forEach(rk => {
+      const row = +rk;
+      const nextRow = byRow[row + 1];
+      if (!nextRow) return;
+      for (const p of byRow[row]) {
+        // sorted neighbours in the next row by distance, take closest 2
+        const sorted = nextRow
+          .map(q => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) }))
+          .sort((a, b) => a.d - b.d)
+          .slice(0, 2);
+        for (const { q } of sorted) {
+          st.constellations.push({
+            a: { x: p.x, y: p.y }, b: { x: q.x, y: q.y },
+            brightness: 0.10 + Math.random() * 0.10,
+            phase: Math.random() * Math.PI * 2,
+          });
+        }
+      }
+    });
   }
 
+  function initNebula() {
+    const st = stateRef.current;
+    if (st.nebula.length) return;
+    const palette = [
+      { h: 38,  s: 90, l: 55 },   // gold
+      { h: 22,  s: 85, l: 50 },   // amber
+      { h: 340, s: 75, l: 55 },   // rose
+      { h: 270, s: 65, l: 50 },   // violet
+      { h: 12,  s: 90, l: 55 },   // fire
+    ];
+    for (let i = 0; i < 5; i++) {
+      const p = palette[i % palette.length];
+      st.nebula.push({
+        x: Math.random() * st.w,
+        y: Math.random() * st.h,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 6,
+        r: 180 + Math.random() * 160,
+        h: p.h, s: p.s, l: p.l,
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+
+  // ---------- DROP / PHYSICS -----------------------------------------
   function spawn(typeId, bet) {
     const st = stateRef.current;
     const type = BALL_TYPES[typeId] || BALL_TYPES.gold;
@@ -171,18 +226,77 @@ export default function Scene() {
     st.balls.push({
       id: Math.random().toString(36).slice(2),
       x, y, vx: (Math.random() - 0.5) * 60, vy: 0,
-      r: st.ballR, type, bet, trail: [], settled: false, settleAt: 0,
+      r: st.ballR, type, bet,
+      trail: [], settled: false, settleAt: 0,
+      bonusMult: 1,                    // accumulated multiplier-star bonus
+      hitMultStars: new Set(),         // which multStars already counted
     });
   }
 
-  function step(dt) {
+  function step(dt, now) {
     const st = stateRef.current;
     const gravity = 1400;
     const drag = 0.999;
-    // Sub-stepped integration for stable physics
     const SUB = 5;
     const sdt = dt / SUB;
 
+    // === Maybe spawn a new multiplier star ===
+    if (now > st.nextMultAt && st.pegs.length && st.multStars.length < 3) {
+      // Prefer middle-ish rows so the ball actually has a chance to hit
+      const candidates = st.pegs.filter(p => p.row >= 2 && p.row <= st.rows - 3);
+      if (candidates.length) {
+        const peg = candidates[Math.floor(Math.random() * candidates.length)];
+        const values = [2, 2, 2, 3, 3, 5]; // weighted toward 2/3
+        const value = values[Math.floor(Math.random() * values.length)];
+        st.multStars.push({
+          pegIndex: st.pegs.indexOf(peg),
+          x: peg.x, y: peg.y,
+          value,
+          spawnedAt: now,
+          ttl: 9000 + Math.random() * 3000,
+          claimed: false,
+        });
+      }
+      st.nextMultAt = now + 5000 + Math.random() * 5000;
+    }
+    // Despawn expired multiplier stars
+    st.multStars = st.multStars.filter(m =>
+      (now - m.spawnedAt) < m.ttl
+    );
+
+    // === Maybe spawn a shooting star ===
+    if (now > st.nextShootAt) {
+      const fromLeft = Math.random() > 0.5;
+      const y = 40 + Math.random() * (st.h * 0.5);
+      st.shootingStars.push({
+        x: fromLeft ? -50 : st.w + 50,
+        y,
+        vx: (fromLeft ? 1 : -1) * (440 + Math.random() * 260),
+        vy: 110 + Math.random() * 80,
+        life: 1, decay: 0.55,
+        len: 90,
+      });
+      st.nextShootAt = now + 8000 + Math.random() * 8000;
+    }
+    for (const s of st.shootingStars) {
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+      s.life -= s.decay * dt;
+    }
+    st.shootingStars = st.shootingStars.filter(s => s.life > 0);
+
+    // === Drift nebula clouds ===
+    for (const n of st.nebula) {
+      n.x += n.vx * dt;
+      n.y += n.vy * dt;
+      n.phase += dt * 0.2;
+      if (n.x < -n.r) n.x = st.w + n.r;
+      if (n.x > st.w + n.r) n.x = -n.r;
+      if (n.y < -n.r) n.y = st.h + n.r;
+      if (n.y > st.h + n.r) n.y = -n.r;
+    }
+
+    // === Ball physics (sub-stepped) ===
     for (let s = 0; s < SUB; s++) {
       for (const b of st.balls) {
         if (b.settled) continue;
@@ -208,7 +322,20 @@ export default function Scene() {
             sparkBurst(p.x, p.y, '#FFE695', 4);
           }
         }
-        // Side rails — push back if escaping
+        // Multiplier-star pass-through detection
+        for (const m of st.multStars) {
+          if (m.claimed) continue;
+          if (b.hitMultStars.has(m)) continue;
+          const dx = b.x - m.x, dy = b.y - m.y;
+          const rr = (b.r + 24);
+          if (dx * dx + dy * dy < rr * rr) {
+            b.hitMultStars.add(m);
+            b.bonusMult *= m.value;
+            m.claimed = true;
+            multStarBurst(m.x, m.y, m.value);
+          }
+        }
+        // Side rails
         if (b.x < st.baseL.x + b.r * 0.5) {
           b.x = st.baseL.x + b.r * 0.5;
           b.vx = Math.abs(b.vx) * 0.6;
@@ -220,14 +347,12 @@ export default function Scene() {
       }
     }
 
-    // Trail bookkeeping + landing detection
-    const now = performance.now();
+    // === Trail bookkeeping + landing ===
     for (const b of st.balls) {
       if (b.settled) continue;
       b.trail.push({ x: b.x, y: b.y });
-      while (b.trail.length > 16) b.trail.shift();
+      while (b.trail.length > 18) b.trail.shift();
       if (b.y >= st.slotRowY + 6) {
-        // pick slot index by x
         const sl = st.slots;
         let best = 0, bestD = Infinity;
         for (let i = 0; i < sl.length; i++) {
@@ -237,31 +362,47 @@ export default function Scene() {
         sl[best].lastHit = now;
         b.settled = true;
         b.settleAt = now;
-        // resolve in store
-        const result = useGame.getState().resolveLanding(b.id, b.type, b.bet, best);
-        // landing fx
+
+        const slotM = st.slotMs[best] ?? 0.5;
+        const finalMult = slotM * b.type.payoutMul * b.bonusMult;
+        const finalBet = b.bet;
+        // Manually resolve through the store, accounting for bonusMult
+        const G = useGame.getState();
+        const payout = finalBet * finalMult;
+        const profit = payout - finalBet;
+        const newStreak = profit > 0 ? G.streak + 1 : 0;
+        useGame.setState({
+          balance: G.balance + payout,
+          totalWon: G.totalWon + payout,
+          drops: G.drops + 1,
+          biggestMult: Math.max(G.biggestMult, finalMult),
+          history: [{
+            time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+            bet: finalBet, payout, mult: finalMult, type: b.type.id,
+          }, ...G.history].slice(0, 18),
+          lastWin: { profit, mult: finalMult, type: b.type, slotIndex: best, bonusMult: b.bonusMult },
+          streak: newStreak,
+          lastWinTime: profit > 0 ? now : G.lastWinTime,
+        });
         landingBurst(b.x, b.y, b.type.glow);
-        addFloatNum(b.x, b.y, result.profit, result.mult);
-        if (result.mult >= 5) screenShake();
-        if (b.type.id === 'respin') {
-          setTimeout(() => spawn('gold', b.bet), 700);
+        addFloatNum(b.x, b.y, profit, finalMult, b.bonusMult);
+        if (finalMult >= 5) {
+          screenShake();
+          supernova(sl[best].x + sl[best].w / 2, sl[best].y);
         }
       }
     }
+    const nowMs = performance.now();
+    st.balls = st.balls.filter(b => !b.settled || (nowMs - b.settleAt) < 200);
 
-    // Cleanup settled balls after a brief settle delay
-    st.balls = st.balls.filter(b => !b.settled || (now - b.settleAt) < 200);
-
-    // Particles
+    // === Particles ===
     for (const p of st.particles) {
-      p.vy += 600 * dt;
+      p.vy += (p.grav ?? 600) * dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.life -= p.decay * dt;
     }
     st.particles = st.particles.filter(p => p.life > 0);
-
-    // Floats (DOM-emitted) — handled outside this loop
   }
 
   function sparkBurst(x, y, color, n) {
@@ -272,67 +413,253 @@ export default function Scene() {
         vx: (Math.random() - 0.5) * 220,
         vy: -40 - Math.random() * 180,
         r: 1.2 + Math.random() * 2,
-        life: 1, decay: 1.8 + Math.random() * 2,
-        color,
+        life: 1, decay: 1.8 + Math.random() * 2, color,
       });
     }
   }
-
   function landingBurst(x, y, color) {
     const st = stateRef.current;
-    for (let i = 0; i < 26; i++) {
+    for (let i = 0; i < 28; i++) {
       const a = Math.random() * Math.PI * 2;
       const sp = 80 + Math.random() * 240;
       st.particles.push({
-        x, y,
-        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
+        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
         r: 1.5 + Math.random() * 3,
-        life: 1, decay: 1 + Math.random() * 1.5,
-        color,
+        life: 1, decay: 1 + Math.random() * 1.5, color,
       });
     }
   }
-
-  function addFloatNum(x, y, profit, mult) {
-    // Dispatch a window event consumed by the FloatNumbers DOM overlay
+  function multStarBurst(x, y, value) {
+    const st = stateRef.current;
+    const col = value >= 5 ? '#FF2D2D' : value >= 3 ? '#FFB347' : '#9BC8FF';
+    for (let i = 0; i < 24; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 60 + Math.random() * 200;
+      st.particles.push({
+        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 1.6 + Math.random() * 2.4,
+        life: 1, decay: 1.3 + Math.random() * 1.2, color: col, grav: 0,
+      });
+    }
+  }
+  function supernova(x, y) {
+    const st = stateRef.current;
+    for (let i = 0; i < 60; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 200 + Math.random() * 320;
+      st.particles.push({
+        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        r: 2 + Math.random() * 4,
+        life: 1, decay: 0.7 + Math.random() * 0.8,
+        color: i % 2 ? '#FFE695' : '#FF8C42', grav: -80,
+      });
+    }
+  }
+  function addFloatNum(x, y, profit, mult, bonus) {
     window.dispatchEvent(new CustomEvent('plinko-float', {
-      detail: { x, y, profit, mult },
+      detail: { x, y, profit, mult, bonus },
     }));
   }
-
   function screenShake() {
     window.dispatchEvent(new CustomEvent('plinko-shake'));
   }
 
-  // ----- main draw -----
+  // ---------- DRAW ---------------------------------------------------
   function draw(ctx, now) {
     const st = stateRef.current;
     if (!st.w || !st.h) return;
     ctx.clearRect(0, 0, st.w, st.h);
 
-    drawBgGlow(ctx, st, now);
+    drawNebula(ctx, st, now);
+    drawShootingStars(ctx, st);
     drawTriangleRails(ctx, st, now);
+    drawConstellations(ctx, st, now);
+    drawStars(ctx, st, now);
+    drawMultStars(ctx, st, now);
     drawDispenser(ctx, st, now);
-    drawPegs(ctx, st, now);
     drawSlots(ctx, st, now);
     drawParticles(ctx, st);
     drawBalls(ctx, st, now);
   }
 
-  function drawBgGlow(ctx, st, now) {
-    const cx = st.cx, cy = st.cy;
-    // gentle radial spotlight (additive, doesn't paint a black rect)
-    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(st.w, st.h) * 0.55);
-    g.addColorStop(0, 'rgba(212,123,55,0.10)');
-    g.addColorStop(0.55, 'rgba(92,63,8,0.05)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, st.w, st.h);
+  function drawNebula(ctx, st, now) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (const n of st.nebula) {
+      const pulse = 0.85 + Math.sin(n.phase) * 0.15;
+      const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * pulse);
+      g.addColorStop(0,    `hsla(${n.h}, ${n.s}%, ${n.l}%, 0.20)`);
+      g.addColorStop(0.45, `hsla(${n.h}, ${n.s}%, ${n.l - 10}%, 0.08)`);
+      g.addColorStop(1,    `hsla(${n.h}, ${n.s}%, 20%, 0)`);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r * pulse, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawShootingStars(ctx, st) {
+    for (const s of st.shootingStars) {
+      const tx = s.x - (s.vx / Math.hypot(s.vx, s.vy)) * s.len;
+      const ty = s.y - (s.vy / Math.hypot(s.vx, s.vy)) * s.len;
+      const g = ctx.createLinearGradient(tx, ty, s.x, s.y);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.6, `rgba(255,224,138,${0.7 * s.life})`);
+      g.addColorStop(1, `rgba(255,255,255,${s.life})`);
+      ctx.save();
+      ctx.shadowColor = '#FFE695';
+      ctx.shadowBlur = 16;
+      ctx.strokeStyle = g;
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(s.x, s.y); ctx.stroke();
+      // head
+      const dg = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 8);
+      dg.addColorStop(0, `rgba(255,255,255,${s.life})`);
+      dg.addColorStop(1, 'rgba(255,224,138,0)');
+      ctx.fillStyle = dg;
+      ctx.beginPath(); ctx.arc(s.x, s.y, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawConstellations(ctx, st, now) {
+    ctx.save();
+    for (const c of st.constellations) {
+      // Subtle alpha flicker per line
+      const flick = 0.5 + Math.sin(now / 700 + c.phase) * 0.3;
+      const alpha = c.brightness * flick;
+      const g = ctx.createLinearGradient(c.a.x, c.a.y, c.b.x, c.b.y);
+      g.addColorStop(0, `rgba(255,224,138,${alpha * 0.7})`);
+      g.addColorStop(0.5, `rgba(255,224,138,${alpha})`);
+      g.addColorStop(1, `rgba(255,224,138,${alpha * 0.7})`);
+      ctx.strokeStyle = g;
+      ctx.lineWidth = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(c.a.x, c.a.y); ctx.lineTo(c.b.x, c.b.y); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // STAR pegs with twinkle + cross flare
+  function drawStars(ctx, st, now) {
+    for (const p of st.pegs) {
+      const age = (now - p.lastHit) / 280;
+      const hit = Math.max(0, 1 - age);
+      const tw = 0.5 + Math.sin(now / 1000 * p.rate + p.phase) * 0.5;
+      const r = p.r;
+      const glow = 0.4 + tw * 0.4 + hit * 0.4;
+      // Outer halo
+      ctx.save();
+      const hr = r * (1.6 + tw + hit * 2);
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, hr);
+      g.addColorStop(0, `rgba(255,230,149,${0.55 * glow})`);
+      g.addColorStop(0.6, `rgba(212,123,55,${0.25 * glow})`);
+      g.addColorStop(1, 'rgba(255,230,149,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      // Cross flares (vertical + horizontal lines)
+      ctx.save();
+      const flareLen = r * (2.5 + tw * 1.8 + hit * 2.5);
+      const fg = ctx.createLinearGradient(p.x - flareLen, p.y, p.x + flareLen, p.y);
+      fg.addColorStop(0, 'rgba(255,224,138,0)');
+      fg.addColorStop(0.45, `rgba(255,224,138,${0.6 + hit * 0.3})`);
+      fg.addColorStop(0.55, `rgba(255,224,138,${0.6 + hit * 0.3})`);
+      fg.addColorStop(1, 'rgba(255,224,138,0)');
+      ctx.strokeStyle = fg;
+      ctx.lineWidth = 0.9 + hit * 1.2;
+      ctx.shadowColor = '#FFE695';
+      ctx.shadowBlur = 6 + hit * 8;
+      ctx.beginPath();
+      ctx.moveTo(p.x - flareLen, p.y);
+      ctx.lineTo(p.x + flareLen, p.y);
+      ctx.stroke();
+      const vg = ctx.createLinearGradient(p.x, p.y - flareLen, p.x, p.y + flareLen);
+      vg.addColorStop(0, 'rgba(255,224,138,0)');
+      vg.addColorStop(0.45, `rgba(255,224,138,${0.6 + hit * 0.3})`);
+      vg.addColorStop(0.55, `rgba(255,224,138,${0.6 + hit * 0.3})`);
+      vg.addColorStop(1, 'rgba(255,224,138,0)');
+      ctx.strokeStyle = vg;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y - flareLen);
+      ctx.lineTo(p.x, p.y + flareLen);
+      ctx.stroke();
+      ctx.restore();
+      // Star core (small bright spot)
+      ctx.save();
+      const cg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 1.1);
+      cg.addColorStop(0, '#FFFFFF');
+      cg.addColorStop(0.35, '#FFE695');
+      cg.addColorStop(0.85, hit > 0.2 ? '#FA7909' : '#D4AF37');
+      cg.addColorStop(1, 'rgba(120,80,20,0)');
+      ctx.fillStyle = cg;
+      ctx.shadowColor = '#FFE695';
+      ctx.shadowBlur = 4 + hit * 8;
+      ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.05, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawMultStars(ctx, st, now) {
+    for (const m of st.multStars) {
+      const age = (now - m.spawnedAt) / m.ttl;
+      const fadeIn = Math.min(1, (now - m.spawnedAt) / 350);
+      const fadeOut = Math.min(1, (m.ttl - (now - m.spawnedAt)) / 400);
+      const a = Math.max(0, Math.min(1, fadeIn * fadeOut));
+      const col = m.value >= 5 ? '#FF2D2D'
+                : m.value >= 3 ? '#FFB347'
+                : '#9BC8FF';
+      const colDeep = m.value >= 5 ? '#7A0F0F'
+                    : m.value >= 3 ? '#8B2500'
+                    : '#1A4080';
+      const pulse = 1 + Math.sin(now / 220 + m.x * 0.01) * 0.18;
+      const radius = (st.pegR * 2.8) * pulse;
+
+      // Outer glow
+      ctx.save();
+      ctx.globalAlpha = a;
+      const g = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, radius * 2.4);
+      g.addColorStop(0, `${col}cc`);
+      g.addColorStop(0.5, `${col}55`);
+      g.addColorStop(1, `${col}00`);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(m.x, m.y, radius * 2.4, 0, Math.PI * 2); ctx.fill();
+      // 6-point star body
+      ctx.save();
+      ctx.translate(m.x, m.y);
+      ctx.rotate(now / 1400);
+      const points = 6;
+      ctx.beginPath();
+      for (let i = 0; i < points * 2; i++) {
+        const ang = (Math.PI / points) * i;
+        const rr = i % 2 === 0 ? radius : radius * 0.45;
+        const px = Math.cos(ang) * rr;
+        const py = Math.sin(ang) * rr;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      const sg = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+      sg.addColorStop(0, '#fff');
+      sg.addColorStop(0.4, col);
+      sg.addColorStop(1, colDeep);
+      ctx.fillStyle = sg;
+      ctx.shadowColor = col;
+      ctx.shadowBlur = 20;
+      ctx.fill();
+      ctx.restore();
+      // Value label above
+      ctx.font = '700 14px Audiowide, Inter';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = col;
+      ctx.shadowBlur = 8;
+      ctx.fillText(`×${m.value}`, m.x, m.y + 5);
+      ctx.restore();
+    }
   }
 
   function drawTriangleRails(ctx, st, now) {
     const { apex, baseL, baseR } = st;
-    // Underlay glow
     ctx.save();
     ctx.lineCap = 'round';
     ctx.shadowColor = '#D47B37';
@@ -345,8 +672,6 @@ export default function Scene() {
     ctx.lineTo(baseR.x, baseR.y);
     ctx.stroke();
     ctx.restore();
-
-    // Crisp gradient stroke per side
     const drawSide = (a, b) => {
       const g = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
       g.addColorStop(0,    'rgba(255,240,191,0)');
@@ -358,14 +683,11 @@ export default function Scene() {
       ctx.lineCap = 'round';
       ctx.strokeStyle = g;
       ctx.lineWidth = 2.4;
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
       ctx.restore();
     };
-    drawSide(apex, baseL);
-    drawSide(apex, baseR);
-
-    // Comet sweep — bright dot travels each rail on a 3s loop
+    drawSide(apex, baseL); drawSide(apex, baseR);
+    // Comet sweep
     const sweepLen = 110;
     const t = (now / 3000) % 1;
     for (const base of [baseL, baseR]) {
@@ -389,7 +711,6 @@ export default function Scene() {
       ctx.strokeStyle = sg; ctx.lineWidth = 4.4; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
       ctx.restore();
-      // Bright leading dot
       const dotG = ctx.createRadialGradient(ex, ey, 0, ex, ey, 10);
       dotG.addColorStop(0, 'rgba(255,255,255,1)');
       dotG.addColorStop(0.5, 'rgba(255,224,138,0.8)');
@@ -399,8 +720,6 @@ export default function Scene() {
       ctx.beginPath(); ctx.arc(ex, ey, 10, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
-
-    // Apex + base corner glow
     for (const p of [apex, baseL, baseR]) {
       ctx.save();
       const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 20);
@@ -415,15 +734,12 @@ export default function Scene() {
   function drawDispenser(ctx, st, now) {
     if (!st.dispenser) return;
     const { x, y, r } = st.dispenser;
-    // outer halo
     const ho = ctx.createRadialGradient(x, y, 0, x, y, r * 2);
     ho.addColorStop(0, 'rgba(255,167,71,0.35)');
     ho.addColorStop(0.5, 'rgba(212,123,55,0.12)');
     ho.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = ho;
     ctx.beginPath(); ctx.arc(x, y, r * 2, 0, Math.PI * 2); ctx.fill();
-
-    // ring (breathing)
     const breathe = 1 + Math.sin(now / 600) * 0.02;
     ctx.save();
     ctx.shadowColor = '#FFE695'; ctx.shadowBlur = 14;
@@ -434,15 +750,11 @@ export default function Scene() {
     ctx.strokeStyle = 'rgba(212,175,55,0.7)';
     ctx.beginPath(); ctx.arc(x, y, r * 0.85, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
-
-    // dark glass disc inside
     const dg = ctx.createRadialGradient(x, y, 0, x, y, r * 0.86);
     dg.addColorStop(0, '#1a120a');
     dg.addColorStop(1, '#050404');
     ctx.fillStyle = dg;
     ctx.beginPath(); ctx.arc(x, y, r * 0.84, 0, Math.PI * 2); ctx.fill();
-
-    // ball cluster (12 small orange orbs, jiggling)
     const t = now / 1000;
     const cluster = [
       [-0.40,  0.05], [-0.20, -0.10], [ 0.00,  0.10], [ 0.22, -0.05], [ 0.40,  0.04],
@@ -463,14 +775,11 @@ export default function Scene() {
       bg.addColorStop(1, '#5C3F08');
       ctx.fillStyle = bg;
       ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
-      // tiny specular
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
       ctx.beginPath();
       ctx.arc(bx - br * 0.35, by - br * 0.45, br * 0.22, 0, Math.PI * 2);
       ctx.fill();
     }
-
-    // drop chute
     ctx.fillStyle = '#050404';
     ctx.strokeStyle = '#D4AF37';
     ctx.lineWidth = 1;
@@ -480,46 +789,8 @@ export default function Scene() {
     ctx.fill(); ctx.stroke();
   }
 
-  function drawPegs(ctx, st, now) {
-    for (const p of st.pegs) {
-      const age = (now - p.lastHit) / 280;
-      const gl = Math.max(0, 1 - age);
-      // halo
-      const hr = p.r * (1.6 + gl * 2);
-      const g = ctx.createRadialGradient(p.x, p.y, p.r * 0.5, p.x, p.y, hr);
-      g.addColorStop(0, `rgba(255,230,149,${0.45 + gl * 0.55})`);
-      g.addColorStop(1, 'rgba(255,230,149,0)');
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, Math.PI * 2); ctx.fill();
-      // 3D-lit body
-      const bg = ctx.createLinearGradient(p.x, p.y - p.r, p.x, p.y + p.r);
-      bg.addColorStop(0, '#FFF6D8');
-      bg.addColorStop(0.45, '#FFE695');
-      bg.addColorStop(0.75, '#D4AF37');
-      bg.addColorStop(1, gl > 0.2 ? '#FA7909' : '#7A5908');
-      ctx.fillStyle = bg;
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-      // specular
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      ctx.beginPath();
-      ctx.arc(p.x - p.r * 0.35, p.y - p.r * 0.4, p.r * 0.28, 0, Math.PI * 2);
-      ctx.fill();
-      // hit ring
-      if (gl > 0) {
-        ctx.save();
-        ctx.strokeStyle = `rgba(255,255,255,${gl * 0.65})`;
-        ctx.lineWidth = 1.3;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r + 10 * (1 - gl) + 2, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
-  }
-
   function drawSlots(ctx, st, now) {
     if (!st.slots.length) return;
-    // gold ribbon connecting all slot tops
     const first = st.slots[0], last = st.slots[st.slots.length - 1];
     const totalW = (last.x + last.w) - first.x;
     const ribbonY = first.y - 4;
@@ -534,7 +805,6 @@ export default function Scene() {
     ctx.fillStyle = rg;
     ctx.fillRect(first.x, ribbonY, totalW, 1.6);
     ctx.restore();
-
     const slotMs = st.slotMs;
     for (let i = 0; i < st.slots.length; i++) {
       const sl = st.slots[i];
@@ -543,14 +813,10 @@ export default function Scene() {
       const age = (now - sl.lastHit) / 700;
       const p = Math.max(0, 1 - age);
       const w = sl.w, h = sl.h + p * 8, y = sl.y - p * 4, x = sl.x;
-
-      // drop shadow
       ctx.save();
       ctx.fillStyle = 'rgba(0,0,0,0.45)';
       roundRect(ctx, x, y + 3, w, h, 6); ctx.fill();
       ctx.restore();
-
-      // body
       ctx.save();
       ctx.shadowColor = col.bright; ctx.shadowBlur = 8 + p * 22;
       const sg = ctx.createLinearGradient(0, y, 0, y + h);
@@ -559,21 +825,15 @@ export default function Scene() {
       sg.addColorStop(1, col.deep);
       ctx.fillStyle = sg;
       roundRect(ctx, x, y, w, h, 6); ctx.fill();
-
-      // gloss top
       ctx.shadowBlur = 0;
       const gh = ctx.createLinearGradient(0, y, 0, y + h * 0.5);
       gh.addColorStop(0, 'rgba(255,255,255,0.4)');
       gh.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = gh;
       roundRect(ctx, x + 1, y + 1, w - 2, h * 0.45, 5); ctx.fill();
-
-      // stroke
       ctx.strokeStyle = col.bright; ctx.lineWidth = 1 + p * 1.5;
       roundRect(ctx, x, y, w, h, 6); ctx.stroke();
       ctx.restore();
-
-      // multiplier value
       ctx.save();
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
@@ -601,58 +861,65 @@ export default function Scene() {
 
   function drawBalls(ctx, st, now) {
     for (const b of st.balls) {
-      // trail
+      // cosmic trail (stardust)
       for (let i = 0; i < b.trail.length; i++) {
         const tp = b.trail[i];
         const k = i / b.trail.length;
-        const r = (b.r + 5) * (0.3 + k * 0.85);
+        const r = (b.r + 6) * (0.3 + k * 0.95);
         ctx.save();
-        ctx.globalAlpha = 0.04 + k * 0.5;
+        ctx.globalAlpha = 0.04 + k * 0.55;
         const tg = ctx.createRadialGradient(tp.x, tp.y, 0, tp.x, tp.y, r);
         tg.addColorStop(0, b.type.core);
+        tg.addColorStop(0.5, b.type.glow);
         tg.addColorStop(1, b.type.glow + '00');
         ctx.fillStyle = tg;
         ctx.beginPath(); ctx.arc(tp.x, tp.y, r, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
       }
+      // strong outer aura with bonus glow
+      const bonusBoost = (b.bonusMult > 1 ? Math.log2(b.bonusMult) * 0.4 : 0);
+      const auraR = (b.r * 3) * (1 + bonusBoost);
+      ctx.save();
+      const ag = ctx.createRadialGradient(b.x, b.y, b.r, b.x, b.y, auraR);
+      ag.addColorStop(0, `${b.type.glow}d0`);
+      ag.addColorStop(0.5, `${b.type.glow}55`);
+      ag.addColorStop(1, `${b.type.glow}00`);
+      ctx.fillStyle = ag;
+      ctx.beginPath(); ctx.arc(b.x, b.y, auraR, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
       drawFigmaBall(ctx, b.x, b.y, b.r, b.type);
+
+      // If bonusMult > 1, render a small ×N tag above the ball
+      if (b.bonusMult > 1) {
+        ctx.save();
+        ctx.font = '700 12px Audiowide, Inter';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = '#FFE695';
+        ctx.shadowBlur = 8;
+        ctx.fillText(`×${b.bonusMult}`, b.x, b.y - b.r - 8);
+        ctx.restore();
+      }
     }
   }
-
-  // 4-layer Figma-style ball
   function drawFigmaBall(ctx, x, y, r, t) {
     ctx.save();
-    // outer glow ring
-    const glowR = r * 2.4;
-    const og = ctx.createRadialGradient(x, y, r, x, y, glowR);
-    og.addColorStop(0, `${t.glow}cc`);
-    og.addColorStop(1, `${t.glow}00`);
-    ctx.fillStyle = og;
-    ctx.beginPath(); ctx.arc(x, y, glowR, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-
-    ctx.save();
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
-    // Layer 1: black → dark radial (gives bottom-left shadow)
     const a1 = 114.341 * Math.PI / 180;
     const dx1 = Math.cos(a1) * r * 0.14, dy1 = -Math.sin(a1) * r * 0.22;
     const g1 = ctx.createRadialGradient(x + dx1, y + dy1, 0, x + dx1, y + dy1, r * 1.05);
     g1.addColorStop(0, '#000'); g1.addColorStop(1, t.deep);
     ctx.fillStyle = g1; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    // Layer 2: vivid tint radial
     const a2 = 56.385 * Math.PI / 180;
     const dx2 = Math.cos(a2) * r * -0.5, dy2 = Math.sin(a2) * r * -0.45;
     const g2 = ctx.createRadialGradient(x + dx2, y + dy2, 0, x + dx2, y + dy2, r * 1.3);
-    g2.addColorStop(0, t.glow);
-    g2.addColorStop(1, 'rgba(255,96,96,0)');
+    g2.addColorStop(0, t.glow); g2.addColorStop(1, 'rgba(255,96,96,0)');
     ctx.fillStyle = g2; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    // Layer 3: white highlight top-right
     const a3 = 135.22 * Math.PI / 180;
     const dx3 = Math.cos(a3) * r * 0.67, dy3 = Math.sin(a3) * r * -0.52;
     const g3 = ctx.createRadialGradient(x + dx3, y + dy3, 0, x + dx3, y + dy3, r * 0.73);
     g3.addColorStop(0, '#fff'); g3.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g3; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    // Layer 4: gloss linear
     const g4 = ctx.createLinearGradient(x + r * 0.27, y - r * 0.72, x - r * 0.27, y + r * 0.46);
     g4.addColorStop(0, 'rgba(255,255,255,0.6)');
     g4.addColorStop(1, 'rgba(255,255,255,0)');
@@ -670,11 +937,9 @@ function slotColor(m) {
   if (m >= 1)   return { bright: '#D4AF37', deep: '#5C3F08' };
   return            { bright: '#7A5908', deep: '#241A0F' };
 }
-
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
   ctx.quadraticCurveTo(x + w, y, x + w, y + r);
   ctx.lineTo(x + w, y + h - r);
   ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
