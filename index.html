@@ -12,7 +12,7 @@
 <link rel="preload" as="image" href="assets/svg/play-btn.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --gold:#D4AF37; --goldHi:#FFE695; --goldLite:#FFF6D8; --goldDeep:#5C3F08; --orange:#D47B37;
@@ -95,20 +95,21 @@ body{position:fixed;inset:0}
   border:1px solid rgba(212,175,55,.7);box-shadow:0 0 6px rgba(212,175,55,.5),inset 0 0 4px #000}
 
 /* Inline WIN bar — uses Figma's win-bar SVG. Positioned ABOVE the PLAY
-   button so it visually crowns the controls area, matching the
-   "Multiplier Active" Figma frame. */
-.winBar{position:absolute;left:50%;bottom:200px;transform:translateX(-50%);width:380px;height:64px;z-index:11;
+   button so it visually crowns the controls area. */
+.winBar{position:absolute;left:50%;bottom:200px;transform:translateX(-50%);width:400px;height:68px;z-index:11;
   background:url('assets/svg/win-bar.svg') center/100% 100% no-repeat;
   filter:drop-shadow(0 0 14px rgba(0,169,145,.4));
-  display:flex;align-items:center;justify-content:center;gap:14px;opacity:0;transition:opacity .25s,filter .25s;pointer-events:none}
-.winBar.on{opacity:1;filter:drop-shadow(0 0 22px rgba(255,224,138,.85))}
-.winBar .lbl{font-size:11px;letter-spacing:3px;color:#FFE695;font-weight:600;text-transform:uppercase}
-.winBar .num{font-family:'Cinzel',serif;font-size:24px;font-weight:800;color:#FFE695;letter-spacing:1px;
-  text-shadow:0 0 12px rgba(255,224,138,.8);transition:color .25s;line-height:1}
+  display:flex;align-items:center;justify-content:center;gap:18px;opacity:0;transition:opacity .25s,filter .25s;pointer-events:none}
+.winBar.on{opacity:1;filter:drop-shadow(0 0 26px rgba(255,224,138,.85))}
+.winBar .lbl{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:4px;color:#FFE695;font-weight:600;text-transform:uppercase;opacity:.85}
+.winBar .num{font-family:'Audiowide','Orbitron','Inter',sans-serif;font-size:30px;font-weight:400;letter-spacing:2px;line-height:1;
+  background:linear-gradient(180deg,#FFF6D8 0%,#FFE695 45%,#D4AF37 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 12px rgba(255,224,138,.7));transition:filter .25s}
 .winBar.win .num{animation:winPulse .6s cubic-bezier(.2,1.2,.3,1.1)}
-.winBar.big .num{color:#FFB347;text-shadow:0 0 16px rgba(255,107,26,.9)}
-.winBar.mega .num{color:#FF8C42;text-shadow:0 0 16px rgba(255,45,45,.9)}
-.winBar.loss .num{color:#8A7A5E;text-shadow:none}
+.winBar.big .num{background:linear-gradient(180deg,#FFE08A 0%,#FFB347 45%,#FF6B1A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,107,26,.95))}
+.winBar.mega .num{background:linear-gradient(180deg,#FFE08A 0%,#FF8C42 35%,#FF2D2D 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(255,45,45,1))}
+.winBar.loss .num{background:linear-gradient(180deg,#B8A380,#8A7A5E);-webkit-background-clip:text;background-clip:text;color:transparent;filter:none}
 @keyframes winPulse{0%{transform:scale(.5);opacity:0}45%{transform:scale(1.25);opacity:1}100%{transform:scale(1);opacity:1}}
 
 /* === TOP LEGEND BAR — the 6 multiplier-ball colors === */
@@ -118,7 +119,7 @@ body{position:fixed;inset:0}
   border:1px solid rgba(212,175,55,.7);
   clip-path:polygon(14px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
   filter:drop-shadow(0 0 8px rgba(212,175,55,.3))}
-.lb{display:flex;align-items:center;gap:6px;font-family:'Inter';font-size:13px;font-weight:700;color:#fff;letter-spacing:.5px}
+.lb{display:flex;align-items:center;gap:6px;font-family:'Audiowide','Inter',sans-serif;font-size:14px;font-weight:400;color:#fff;letter-spacing:1px;text-shadow:0 0 6px rgba(255,224,138,.4)}
 .lb .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;
   background:radial-gradient(circle at 35% 30%, #fff 0%, var(--c1) 35%, var(--c2) 100%);
   box-shadow:0 0 6px var(--c1)}
@@ -193,8 +194,8 @@ body{position:fixed;inset:0}
   filter:drop-shadow(0 0 32px rgba(255,224,138,1)) drop-shadow(0 0 70px rgba(212,175,55,.7))}
 .playWrap:active{transform:translateX(-50%) scale(.96)}
 .playWrap.disabled{opacity:.45;cursor:not-allowed}
-.playWrap .playText{font-family:'Inter',sans-serif;font-weight:800;font-size:36px;color:#fff;letter-spacing:6px;
-  text-shadow:0 2px 4px rgba(0,0,0,.6),0 0 14px rgba(255,255,255,.5),0 0 24px rgba(255,224,138,.8);
+.playWrap .playText{font-family:'Audiowide','Inter',sans-serif;font-weight:400;font-size:40px;color:#fff;letter-spacing:5px;
+  text-shadow:0 2px 4px rgba(0,0,0,.65),0 0 16px rgba(255,255,255,.6),0 0 28px rgba(255,224,138,.85);
   pointer-events:none;position:relative;z-index:2;animation:playPulse 2s ease-in-out infinite alternate}
 @keyframes playPulse{from{text-shadow:0 2px 4px rgba(0,0,0,.6),0 0 14px rgba(255,255,255,.5),0 0 24px rgba(255,224,138,.8)}
   to{text-shadow:0 2px 4px rgba(0,0,0,.6),0 0 22px rgba(255,255,255,.8),0 0 36px rgba(255,224,138,1)}}
@@ -710,25 +711,13 @@ function draw(){
   drawLastT = now;
   ctx.clearRect(0,0,board.W,board.H);
 
-  // === Cinematic spotlight behind the board ===
-  drawSpotlight(ctx, now);
-
-  // === Floating gold dust motes ===
+  // === Floating gold dust motes (only atmospheric effect on canvas now —
+  // the dark spotlight/vignette were creating that ugly cropped-rectangle
+  // look; we let the Figma gold-spheres bg show through instead) ===
   drawDust(ctx, now, dt);
 
   // === Triangle frame (drawn in canvas so it always hugs the pegs) ===
   drawTriangleFrame(ctx, now);
-
-  // === Soft drop shadows for 3D depth on the peg field ===
-  // (rendered as a single big radial gradient under the peg cluster)
-  const sCx = board.cx, sCy = board.topY + (state.rows-1)*board.sp/2;
-  const sR  = board.sp * state.rows * 0.7;
-  const sg = ctx.createRadialGradient(sCx, sCy+10, 0, sCx, sCy+10, sR);
-  sg.addColorStop(0, 'rgba(212,175,55,0.10)');
-  sg.addColorStop(0.4, 'rgba(212,175,55,0.04)');
-  sg.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = sg;
-  ctx.fillRect(0, 0, board.W, board.H);
 
   // Pegs — 3D shaded gold dots, soft halo, brighter on hit
   // Pass 1: ground shadows under each peg for depth
@@ -914,103 +903,107 @@ function draw(){
     }
   }
 
-  // === Edge vignette — darker corners pull focus to the pyramid ===
-  const vg = ctx.createRadialGradient(board.W/2, board.H/2, board.W*0.35, board.W/2, board.H/2, board.W*0.7);
-  vg.addColorStop(0, 'rgba(0,0,0,0)');
-  vg.addColorStop(1, 'rgba(0,0,0,0.55)');
-  ctx.fillStyle = vg;
-  ctx.fillRect(0, 0, board.W, board.H);
 }
 
 // === Canvas-drawn triangle frame ===
-// Computes apex / base corners from the live peg + slot geometry so the
-// outline always perfectly frames the pyramid no matter the row count.
-// Renders a thick gradient stroke with an animated sweep + outer glow,
-// matching the Figma "tri-line" gold gradient (FFF0BF→D47B37→FFF0BF).
+// Apex / base corners derived from the live peg geometry so the outline
+// always hugs the OUTSIDE of the pyramid, no matter the row count.
+// Renders a thick gradient stroke with an animated golden comet sweep
+// running down each side.
 function drawTriangleFrame(ctx, now){
   const sp = board.sp;
-  const slotCount = (3 + state.rows - 1) - 1;
-  const halfBase  = (slotCount * sp) / 2 + 6;
-  const apex   = { x: board.cx,             y: board.topY - 24 };
-  const baseL  = { x: board.cx - halfBase,  y: board.slotsY + 6 };
-  const baseR  = { x: board.cx + halfBase,  y: board.slotsY + 6 };
+  const bottomPegs = 3 + state.rows - 1;
+  // Extend the base PAST the outermost bottom pegs so the lines clearly
+  // frame the pyramid from OUTSIDE — was: (slotCount*sp)/2 (too narrow).
+  const halfBase  = ((bottomPegs - 1) * sp) / 2 + sp * 0.9;
+  const apex   = { x: board.cx,             y: board.topY - 30 };
+  const baseL  = { x: board.cx - halfBase,  y: board.slotsY + 12 };
+  const baseR  = { x: board.cx + halfBase,  y: board.slotsY + 12 };
 
-  // Build a single gold gradient that runs from top-center down to base
-  const grad = ctx.createLinearGradient(apex.x, apex.y, apex.x, baseL.y);
-  // Soft fade at top + bottom, vivid middle — matches Figma tri-line.svg
-  grad.addColorStop(0,    'rgba(255,240,191,0)');
-  grad.addColorStop(0.18, 'rgba(212,123,55,0.7)');
-  grad.addColorStop(0.5,  'rgba(255,224,138,0.95)');
-  grad.addColorStop(0.82, 'rgba(212,123,55,0.7)');
-  grad.addColorStop(1,    'rgba(255,240,191,0)');
+  // Each diagonal uses its own gradient running APEX → base corner so the
+  // gold tone follows the line direction (not a vertical projection).
+  const drawSide = (a, b) => {
+    const g = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    g.addColorStop(0,    'rgba(255,240,191,0)');
+    g.addColorStop(0.15, 'rgba(212,123,55,0.85)');
+    g.addColorStop(0.5,  'rgba(255,230,149,1)');
+    g.addColorStop(0.85, 'rgba(212,123,55,0.85)');
+    g.addColorStop(1,    'rgba(255,240,191,0)');
+    // Wide soft underlay glow
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.shadowColor = '#D47B37';
+    ctx.shadowBlur = 18;
+    ctx.strokeStyle = 'rgba(212,123,55,0.5)';
+    ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.restore();
+    // Crisp gradient stroke
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = g;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.restore();
+  };
+  drawSide(apex, baseL);
+  drawSide(apex, baseR);
 
-  // Outer glow (drawn as a wider, more transparent stroke first)
-  ctx.save();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.shadowColor = '#D47B37';
-  ctx.shadowBlur = 14;
-  ctx.strokeStyle = 'rgba(212,123,55,0.45)';
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(baseL.x, baseL.y);
-  ctx.lineTo(apex.x, apex.y);
-  ctx.lineTo(baseR.x, baseR.y);
-  ctx.stroke();
-  ctx.restore();
-
-  // Crisp inner stroke with the gradient
-  ctx.save();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = grad;
-  ctx.lineWidth = 1.8;
-  ctx.beginPath();
-  ctx.moveTo(baseL.x, baseL.y);
-  ctx.lineTo(apex.x, apex.y);
-  ctx.lineTo(baseR.x, baseR.y);
-  ctx.stroke();
-  ctx.restore();
-
-  // Animated light sweep travelling down each diagonal
-  const sweepLen = 80;
-  const t = (now / 2800) % 1;
+  // === Golden comet sweep down each side ===
+  const sweepLen = 100;
+  const t = (now / 3000) % 1;
   for (const base of [baseL, baseR]){
     const dx = base.x - apex.x, dy = base.y - apex.y;
     const len = Math.hypot(dx, dy);
     const ux = dx/len, uy = dy/len;
-    const sx = apex.x + ux*(t*len), sy = apex.y + uy*(t*len);
-    const ex = sx + ux*sweepLen, ey = sy + uy*sweepLen;
-    // Clip the sweep to the segment
-    const px = Math.min(Math.max(t*len, 0), len);
-    const px2 = Math.min(Math.max(t*len + sweepLen, 0), len);
-    const sx2 = apex.x + ux*px, sy2 = apex.y + uy*px;
-    const ex2 = apex.x + ux*px2, ey2 = apex.y + uy*px2;
-    const sg = ctx.createLinearGradient(sx2, sy2, ex2, ey2);
-    sg.addColorStop(0, 'rgba(255,255,255,0)');
-    sg.addColorStop(0.5, 'rgba(255,255,255,0.9)');
-    sg.addColorStop(1, 'rgba(255,255,255,0)');
+    const head = t * (len + sweepLen) - sweepLen;
+    const tail = head + sweepLen;
+    const p1 = Math.min(Math.max(head, 0), len);
+    const p2 = Math.min(Math.max(tail, 0), len);
+    if (p2 - p1 < 4) continue;
+    const sx = apex.x + ux*p1, sy = apex.y + uy*p1;
+    const ex = apex.x + ux*p2, ey = apex.y + uy*p2;
+    const sg = ctx.createLinearGradient(sx, sy, ex, ey);
+    sg.addColorStop(0,    'rgba(255,255,255,0)');
+    sg.addColorStop(0.45, 'rgba(255,224,138,0.9)');
+    sg.addColorStop(0.75, 'rgba(255,255,255,1)');
+    sg.addColorStop(1,    'rgba(255,255,255,0)');
     ctx.save();
     ctx.shadowColor = '#FFE695';
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur = 18;
     ctx.strokeStyle = sg;
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 4;
     ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(sx2, sy2);
-    ctx.lineTo(ex2, ey2);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    // bright leading dot
+    const dotG = ctx.createRadialGradient(ex, ey, 0, ex, ey, 9);
+    dotG.addColorStop(0, 'rgba(255,255,255,1)');
+    dotG.addColorStop(0.5, 'rgba(255,224,138,0.8)');
+    dotG.addColorStop(1, 'rgba(255,224,138,0)');
+    ctx.fillStyle = dotG;
+    ctx.beginPath(); ctx.arc(ex, ey, 9, 0, Math.PI*2); ctx.fill();
     ctx.restore();
   }
 
   // Apex glow point
   ctx.save();
-  const ag = ctx.createRadialGradient(apex.x, apex.y, 0, apex.x, apex.y, 18);
-  ag.addColorStop(0, 'rgba(255,224,138,0.7)');
+  const ag = ctx.createRadialGradient(apex.x, apex.y, 0, apex.x, apex.y, 22);
+  ag.addColorStop(0, 'rgba(255,224,138,0.85)');
   ag.addColorStop(1, 'rgba(255,224,138,0)');
   ctx.fillStyle = ag;
-  ctx.beginPath(); ctx.arc(apex.x, apex.y, 18, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(apex.x, apex.y, 22, 0, Math.PI*2); ctx.fill();
   ctx.restore();
+
+  // Base corner glow points
+  for (const base of [baseL, baseR]){
+    ctx.save();
+    const bg = ctx.createRadialGradient(base.x, base.y, 0, base.x, base.y, 14);
+    bg.addColorStop(0, 'rgba(255,224,138,0.7)');
+    bg.addColorStop(1, 'rgba(255,224,138,0)');
+    ctx.fillStyle = bg;
+    ctx.beginPath(); ctx.arc(base.x, base.y, 14, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
 }
 
 // === Persistent floating dust motes for cinematic atmosphere ===
@@ -1052,27 +1045,9 @@ function drawDust(ctx, now, dt){
   ctx.restore();
 }
 
-// === Cinematic spotlight behind the pyramid ===
-function drawSpotlight(ctx, now){
-  const cx = board.cx;
-  const cy = board.topY + (state.rows * board.sp) / 2;
-  const rad = board.sp * state.rows * 0.95;
-  // Outer warm halo
-  const g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-  g1.addColorStop(0,   'rgba(212,123,55,0.18)');
-  g1.addColorStop(0.4, 'rgba(92,63,8,0.10)');
-  g1.addColorStop(1,   'rgba(0,0,0,0)');
-  ctx.fillStyle = g1;
-  ctx.fillRect(0, 0, board.W, board.H);
-  // Subtle breathing intensity
-  const pulse = 0.5 + 0.5 * Math.sin(now/2400);
-  const g2 = ctx.createRadialGradient(cx, board.topY+20, 0, cx, board.topY+20, 160);
-  g2.addColorStop(0,   `rgba(255,224,138,${0.10 + pulse*0.08})`);
-  g2.addColorStop(0.5, `rgba(212,175,55,${0.04 + pulse*0.04})`);
-  g2.addColorStop(1,   'rgba(0,0,0,0)');
-  ctx.fillStyle = g2;
-  ctx.fillRect(0, 0, board.W, board.H);
-}
+// (drawSpotlight removed — was creating a visible dark rectangle by
+//  drawing full-canvas gradients on the otherwise-transparent board.
+//  The Figma gold-spheres bg now shows through cleanly.)
 
 // Draw a ball with the exact Figma 4-layer gradient stack: base radial,
 // orange/color radial, white highlight, white linear gloss + outer glow.
