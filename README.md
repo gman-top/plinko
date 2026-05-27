@@ -1,12 +1,48 @@
-# Plinko Gone Wild — Cinematic Redesign
+# Plinko Gone Wild
 
-A premium, cinematic redesign of the **Plinko Gone Wild** casino game, built natively in Figma.
+A premium, cinematic, playable Plinko casino game — **dark luxury gold theme**, real physics, 5 special ball types, cinematic slow-mo moments, big-win celebrations.
 
-**Figma file:** [GAMES UX/UI · Plinko Gone Wild](https://www.figma.com/design/008gDVj6FuoTuk3USADJb8/GAMES-UX-UI?node-id=1-55233)
+## 🎮 Play live
 
-The new design lives on the same page as the original, positioned **below** the original frames, so the existing work stays untouched as a reference.
+**[https://gman-top.github.io/plinko/](https://gman-top.github.io/plinko/)**
 
-## What was delivered
+> If the link 404s, open the repo's **Settings → Pages** and set source to **GitHub Actions** (or **Deploy from branch → `main` → `/ (root)`**). The included workflow at `.github/workflows/pages.yml` will then auto-deploy on every push.
+
+Keyboard shortcuts: **SPACE** drop ball · **I** info · **F** features · **ESC** close modal.
+
+## 🎨 Design source (Figma)
+
+[GAMES UX/UI · Plinko Gone Wild](https://www.figma.com/design/008gDVj6FuoTuk3USADJb8/GAMES-UX-UI?node-id=1588-11)
+
+The design system + 10 polished 1920×1080 frames live **below** the original artwork on the same Figma page (so the original is untouched as a reference).
+
+## What's in this repo
+
+- **`index.html`** — the live, playable Plinko game (single-file, vanilla JS + HTML5 Canvas + CSS)
+- **`design-preview/`** — full-res PNGs of every Figma frame
+- **`.github/workflows/pages.yml`** — GitHub Pages deploy workflow
+
+## Gameplay features
+
+- Real Plinko physics (gravity + peg collisions + sub-stepped integration)
+- 5 ball types — Gold, Wild, Multiplier, Respin, Jackpot
+- 3 risk levels × 5 row counts (8/10/12/14/16) with real Stake-style multiplier tables (×0.2 → ×1000)
+- 3 toggleable Wild Features (Multipliers, Respin Chance, Multi-Ball Chance) that change spawn rates, slot payouts, and peg behavior
+- Manual & Auto modes
+- Live balance, wager, ROI, biggest-win tracking
+- 10-row history table with payout color coding
+- Cinematic slow-mo banner when a special ball spawns
+- Particle bursts on peg hits & ball lands
+- Screen shake on big wins
+- Pulsing target slot + projected-payout HUD while a ball is in play
+- Big Win overlay (×5+ payouts) with gold rays, multiplier chip, claim/continue CTAs
+- Onboarding tutorial carousel on first visit
+- Premium info modal (5 sections: ABOUT · HOW TO PLAY · FEATURES · RESULTS · RTP & FAIRNESS)
+- Feature modal with adjusted-cost-per-ball summary
+- Synthesized Web Audio peg/win sounds (off by default — toggle with the ♪ button)
+- Fully responsive — scales to any viewport while preserving 16:9 pixel-perfect layout
+
+## Frames delivered (Figma)
 
 Ten 1920×1080 frames + a full component/design-system sheet:
 
