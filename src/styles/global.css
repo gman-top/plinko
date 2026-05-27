@@ -781,7 +781,7 @@ body { position: fixed; inset: 0; }
 .howto {
   position: relative; z-index: 2;
   display: grid;
-  grid-template-rows: auto 1fr auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   align-items: center; justify-items: center;
   /* TRUE fullscreen — the modal is the screen */
   width: 100vw; max-width: 100vw;
@@ -851,13 +851,16 @@ body { position: fixed; inset: 0; }
 }
 .maxWinBig span { font-size: 0.7em; margin-left: 2px; }
 
-/* STAGE — fills the available middle row */
+/* STAGE — fills the available middle row, but cannot bleed into
+   adjacent rows (overflow contained so content never overlaps the
+   title/desc beneath it) */
 .howtoStage {
   width: 100%;
   height: 100%;
-  min-height: 200px;
+  min-height: 0;
   display: flex; align-items: center; justify-content: center;
   padding: 8px 0;
+  overflow: hidden;
 }
 
 /* TEXT BLOCK */
@@ -1247,32 +1250,71 @@ body { position: fixed; inset: 0; }
 @media (max-width: 768px) {
   .howto {
     padding: 52px 60px 32px;
-    gap: 10px;
+    gap: 8px;
   }
-  .howtoLogo { width: clamp(160px, 56vw, 240px); }
-  .playSlide { gap: 6px; }
-  .playStep { min-width: 110px; }
+  .howtoLogo { width: clamp(150px, 50vw, 220px); }
+  .maxWinBig { font-size: 26px; }
+  .maxWinBig span { font-size: 18px; }
+  .maxWinTop { font-size: 9px; letter-spacing: 4px; }
+
+  /* Slide 0 (HOW TO PLAY): three steps stack vertically, each row
+     is a compact [number | body | label] layout so they all fit
+     in the limited stage height on a phone. */
   .psArrow { display: none; }
-  .psHint { font-size: 10px; max-width: 110px; }
-  .fakeCtrl { width: 110px; height: 38px; }
-  .fakeCtrl.narrow { width: 80px; }
-  .fakeCtrlVal { font-size: 15px; }
-  .fakePlay { width: 64px; height: 64px; }
-  .fakePlayText { font-size: 13px; letter-spacing: 2px; }
-  .fakePlayBall { top: -24px; }
+  .playSlide {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  .playStep {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    min-width: 0; max-width: 100%;
+    gap: 14px;
+    padding: 4px 0;
+  }
+  .psN { flex-shrink: 0; width: 24px; height: 24px; font-size: 12px; }
+  .psBody {
+    flex: 1; min-width: 0;
+    min-height: 0;
+    flex-direction: row;
+    align-items: center; justify-content: flex-start;
+    gap: 10px;
+    padding: 0;
+  }
+  .psLbl {
+    flex-shrink: 0;
+    font-size: 11px; letter-spacing: 2px;
+    min-width: 80px; text-align: right;
+  }
+  .psHint { display: none; }   /* compact on mobile — title already explains */
+
+  /* Fake controls / play button — compact for the row layout */
+  .fakeCtrl { width: 96px; height: 34px; padding: 0 10px; }
+  .fakeCtrl.narrow { width: 64px; height: 30px; }
+  .fakeCtrlVal { font-size: 14px; }
+  .fakeRiskRow { gap: 6px; }
+  .fakeRiskIc { width: 22px; height: 22px; }
+  .fakePlayWrap { transform: scale(0.7); transform-origin: left center; }
+  .fakePlayBall { top: -18px; }
+
   .miniScene, .multBallScene { gap: 8px; }
-  .miniBoardWrap { max-width: 88vw; }
+  .miniBoardWrap { max-width: 86vw; }
   .ribbonPanel { padding: 8px 10px; gap: 4px; }
   .ribbonRow canvas { width: 22px !important; height: 22px !important; }
   .ribbonRow { gap: 8px; min-height: 22px; }
   .ribbonLbl { font-size: 10px; min-width: 22px; }
-  .howtoDesc  { font-size: 12px; padding: 0 6px; }
+  .howtoDesc  { font-size: 11.5px; padding: 0 6px; line-height: 1.45; }
+  .howtoTitle { font-size: 16px; letter-spacing: 3px; }
   .introStart { padding: 13px 36px; font-size: 14px; letter-spacing: 4px; }
   .introArrow { width: 38px; height: 38px; }
   .introArrow.l { left: 6px; }
   .introArrow.r { right: 6px; }
   .introClose { width: 34px; height: 34px; top: 14px; right: 14px; }
-  .slideCount { font-size: 10px; }
+  .slideCount { font-size: 10px; top: -2px; }
   .aigoName { font-size: 26px; letter-spacing: 6px; }
   .loadBar { width: 220px; }
   .loadLogo { width: clamp(180px, 60vw, 260px); }
