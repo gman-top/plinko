@@ -481,15 +481,12 @@ body { position: fixed; inset: 0; }
 .mobileMenuBtn {
   display: none;
   position: fixed;
-  top: 12px; right: 12px;
-  width: 46px; height: 46px;
+  top: 14px; right: 14px;
+  width: 44px; height: 44px;
+  padding: 0;
   border-radius: 50%;
   background: linear-gradient(180deg, rgba(28,20,11,.95), rgba(5,4,4,.95));
   border: 1px solid var(--gold);
-  color: var(--goldHi);
-  font-family: 'Inter', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
   align-items: center; justify-content: center;
   cursor: pointer;
   z-index: 25;
@@ -498,6 +495,42 @@ body { position: fixed; inset: 0; }
 }
 .mobileMenuBtn:hover { box-shadow: 0 0 22px rgba(255,224,138,.6); }
 .mobileMenuBtn:active { transform: scale(.92); }
+
+/* 3-bar icon inside the menu button. Morphs to an X when open
+   (top bar rotates, middle fades, bottom rotates the other way). */
+.mobileMenuIco {
+  position: relative;
+  width: 18px; height: 14px;
+  display: block;
+}
+.mobileMenuIco > span {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--goldHi);
+  border-radius: 1px;
+  box-shadow: 0 0 5px rgba(255,224,138,.55);
+  transition: transform .25s ease, opacity .2s, top .25s ease;
+  transform-origin: 50% 50%;
+}
+.mobileMenuIco > span:nth-child(1) { top: 0; }
+.mobileMenuIco > span:nth-child(2) { top: 6px; }
+.mobileMenuIco > span:nth-child(3) { top: 12px; }
+.mobileMenuIco.open > span:nth-child(1) { top: 6px; transform: rotate(45deg); }
+.mobileMenuIco.open > span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.mobileMenuIco.open > span:nth-child(3) { top: 6px; transform: rotate(-45deg); }
+
+/* Mobile brand — small Plinko mark top-left on phones */
+.mobileBrand {
+  display: none;
+  position: fixed;
+  top: 14px; left: 16px;
+  width: 96px; height: 34px;
+  background: url('/assets/svg/logo-plinko.svg') left center / contain no-repeat;
+  filter: drop-shadow(0 0 10px rgba(212,175,55,.55));
+  z-index: 25;
+  pointer-events: none;
+}
 
 .mobileDrawer {
   position: fixed; inset: 0;
@@ -593,6 +626,7 @@ body { position: fixed; inset: 0; }
 @media (max-width: 768px) {
   .desktopOnly { display: none !important; }
   .mobileMenuBtn { display: flex; }
+  .mobileBrand { display: block; }
   .mobileQuick { display: flex; }
 
   /* Bottom area taller so LINES/RISK/BET strip fits above the PLAY */
@@ -650,6 +684,7 @@ body { position: fixed; inset: 0; }
 /* Force drawer / mobile chips to never show on desktop */
 @media (min-width: 769px) {
   .mobileMenuBtn,
+  .mobileBrand,
   .mobileQuick,
   .mobileDrawer { display: none !important; }
 }

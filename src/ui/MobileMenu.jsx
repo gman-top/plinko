@@ -22,12 +22,18 @@ export default function MobileMenu() {
 
   return (
     <>
+      {/* Small Plinko brand mark top-left on mobile (mirrors the
+          full Logo that's hidden on phones). */}
+      <div className="mobileBrand" aria-label="PLINKO GONE WILD" />
+
       <button
         className="mobileMenuBtn"
         onClick={toggle}
         aria-label={open ? 'Close menu' : 'Open menu'}
       >
-        {open ? '✕' : '☰'}
+        <span className={`mobileMenuIco${open ? ' open' : ''}`}>
+          <span /><span /><span />
+        </span>
       </button>
 
       <div className={`mobileDrawer${open ? ' open' : ''}`}>
