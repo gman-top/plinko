@@ -122,7 +122,7 @@ export default function Scene() {
   }, []);
 
   useEffect(() => {
-    const onDrop = (e) => spawn(e.detail.typeId, e.detail.bet);
+    const onDrop = (e) => spawn(e.detail.typeId, e.detail.bet, e.detail.casino);
     window.addEventListener('plinko-drop', onDrop);
     return () => window.removeEventListener('plinko-drop', onDrop);
   }, []);
@@ -284,14 +284,13 @@ export default function Scene() {
   }
 
   // ---------- DROP / PHYSICS -----------------------------------------
-  function spawn(typeId, bet) {
+  // `casino` (optional) = { slot, bounces[], nonce, rows } from the
+  // provably-fair RNG. When present, ball.targetSlot is honored at
+  // landing time and peg collisions get biased toward that column.
+  function spawn(typeId, bet, casino = null) {
     const st = stateRef.current;
     const type = BALL_TYPES[typeId] || BALL_TYPES.gold;
     const x = st.cx + (Math.random() - 0.5) * 4;
-    // Spawn just below the dispenser drop chute so the ball reads as
-    // coming OUT of the dispenser, and well below the rail apex where
-    // the two diagonals converge (so it can't be eaten by the rail
-    // collision the moment it appears).
     const y = st.dispenser
       ? st.dispenser.y + st.dispenser.r * 0.92
       : st.apex.y + st.sp * 0.6;
@@ -302,6 +301,9 @@ export default function Scene() {
       trail: [], settled: false, settleAt: 0,
       bonusMult: 1,
       hitMultStars: new Set(),
+      // Casino RNG outcome — predetermined landing slot for fairness.
+      targetSlot: casino ? casino.slot : null,
+      casinoNonce: casino ? casino.nonce : null,
     });
     Sounds.playDrop();
   }
@@ -520,6 +522,26 @@ export default function Scene() {
             b.vx -= (1 + e) * dot * nx;
             b.vy -= (1 + e) * dot * ny;
             b.vx += (Math.random() - 0.5) * 28;
+            // Casino bias: if a target slot is predetermined, nudge the
+            // bounce toward that column. Strength ramps up as the ball
+            // descends so early bounces look natural and late bounces
+            // pull harder — by the slot row, the ball is on-column.
+            if (b.targetSlot != null && st.slots.length > 0) {
+              const tSlot = st.slots[b.targetSlot];
+              if (tSlot) {
+                const targetX = tSlot.x + tSlot.w / 2;
+                const dxT = targetX - b.x;
+                // Linear ramp from 0 at apex to 1 at slot row.
+                const depth = Math.max(0, Math.min(1,
+                  (b.y - st.apex.y) / Math.max(1, st.slotRowY - st.apex.y)));
+                // Stronger pull near the end, with an additional kick
+                // proportional to how far off the target column we are.
+                const pull = depth * depth * 0.7;     // 0..0.7
+                b.vx += dxT * pull;
+                // Reduce the random jitter near the end so the bias wins.
+                b.vx -= (Math.random() - 0.5) * 28 * (depth * 0.6);
+              }
+            }
             p.lastHit = performance.now();
             sparkBurst(p.x, p.y, '#FFE695', 4);
             Sounds.playPeg();
@@ -551,11 +573,22 @@ export default function Scene() {
       while (b.trail.length > 18) b.trail.shift();
       if (b.y >= st.slotRowY + 6) {
         const sl = st.slots;
-        let best = 0, bestD = Infinity;
-        for (let i = 0; i < sl.length; i++) {
-          const d = Math.abs(sl[i].x + sl[i].w / 2 - b.x);
-          if (d < bestD) { bestD = d; best = i; }
+        // Casino RNG predetermined a slot; honor it. Physics bias has
+        // already nudged the ball close, so this rarely jumps visibly.
+        // Fallback: pick the visually nearest slot (fair-physics mode).
+        let best;
+        if (b.targetSlot != null && b.targetSlot >= 0 && b.targetSlot < sl.length) {
+          best = b.targetSlot;
+        } else {
+          best = 0; let bestD = Infinity;
+          for (let i = 0; i < sl.length; i++) {
+            const d = Math.abs(sl[i].x + sl[i].w / 2 - b.x);
+            if (d < bestD) { bestD = d; best = i; }
+          }
         }
+        // Snap horizontal position to the resolved slot so the landing
+        // visual matches the cash result.
+        b.x = sl[best].x + sl[best].w / 2;
         sl[best].lastHit = now;
         b.settled = true;
         b.settleAt = now;

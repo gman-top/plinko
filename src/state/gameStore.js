@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 import { MULT_TABLE } from './config.js';
 import * as Sounds from '../audio/sounds.js';
+import * as RNG from '../casino/rng.js';
+
+// Async provably-fair session bootstrap. The store boots with no
+// session, then a one-shot resolution attaches one. Drops issued
+// before the session is ready fall back to Math.random (very brief
+// window — typically resolves on first paint).
+let _sessionPromise = null;
+function rngSession() {
+  if (!_sessionPromise) _sessionPromise = RNG.loadOrCreateSession();
+  return _sessionPromise;
+}
 
 const LS_SOUND = 'plinko-sound-v1';
 const LS_INTRO = 'plinko-intro-v2';
@@ -120,5 +131,35 @@ export const useGame = create((set, get) => ({
     if (s.balance < cost) return false;
     set({ balance: s.balance - cost, totalWager: s.totalWager + cost });
     return true;
+  },
+
+  // === Casino math: predetermine the slot a drop must land in using
+  // the provably-fair RNG. Returns { slot, bounces, nonce } — bounces
+  // is an array the Scene uses to bias peg collisions so the visible
+  // play converges to the predetermined slot.
+  rollDrop: async () => {
+    const s = get();
+    const session = await rngSession();
+    const out = await RNG.nextDrop(session, s.rows);
+    return out;
+  },
+
+  // Reveal the current session for player audit (used by an in-game
+  // "verify" panel — committed serverHash + clientSeed + nonce so the
+  // player can reproduce every past outcome once the seed is rotated).
+  rngSummary: async () => {
+    const session = await rngSession();
+    return {
+      serverHash: session.serverHash,
+      clientSeed: session.clientSeed,
+      nonce: session.nonce,
+    };
+  },
+
+  rotateRng: async () => {
+    const session = await rngSession();
+    const { revealed, fresh } = await RNG.rotateSession(session);
+    _sessionPromise = Promise.resolve(fresh);
+    return revealed;
   },
 }));

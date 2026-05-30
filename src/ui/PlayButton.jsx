@@ -16,13 +16,26 @@ export default function PlayButton() {
   const chargeBet = useGame(s => s.chargeBet);
   const setCinematic = useGame(s => s.setCinematic);
 
-  const dropOne = useCallback(() => {
+  const rollDrop = useGame(s => s.rollDrop);
+
+  const dropOne = useCallback(async () => {
     if (balance < cost) return;
     const type = rollBallType();
     if (!chargeBet(cost)) return;
+    // Provably-fair roll BEFORE physics: predetermined slot + per-row
+    // bounce decisions. Scene biases peg collisions toward these so the
+    // visible path lands the ball in the rolled slot.
+    let casino;
+    try {
+      casino = await rollDrop();
+    } catch (e) {
+      // Fall through with no biasing; Scene falls back to fair-physics
+      console.warn('RNG roll failed, falling back to fair physics:', e);
+      casino = null;
+    }
     const dispatch = () => {
       window.dispatchEvent(new CustomEvent('plinko-drop', {
-        detail: { typeId: type.id, bet: cost },
+        detail: { typeId: type.id, bet: cost, casino },
       }));
     };
     if (type.cinematic) {
@@ -34,7 +47,7 @@ export default function PlayButton() {
     } else {
       dispatch();
     }
-  }, [balance, cost, chargeBet, setCinematic]);
+  }, [balance, cost, chargeBet, setCinematic, rollDrop]);
 
   const click = useCallback(() => {
     Sounds.playClick();
