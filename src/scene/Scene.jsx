@@ -284,12 +284,20 @@ export default function Scene() {
   }
 
   // ---------- DROP / PHYSICS -----------------------------------------
-  // `casino` (optional) = { slot, bounces[], nonce, rows } from the
-  // provably-fair RNG. When present, ball.targetSlot is honored at
-  // landing time and peg collisions get biased toward that column.
+  // `casino` (optional) carries the provably-fair outcome:
+  //   { slot, bounces, nonce, server? }
+  // When `casino.server` is present, the SERVER has already resolved
+  // the cash (debited bet, credited payout, updated balance). The
+  // Scene then just animates the ball to that slot and shows the
+  // payout HUD — it must NOT re-resolve locally. When `casino.server`
+  // is null, we're in local-RNG demo mode and the local landing
+  // logic runs.
   function spawn(typeId, bet, casino = null) {
     const st = stateRef.current;
-    const type = BALL_TYPES[typeId] || BALL_TYPES.gold;
+    // Server may have picked a different ball type (cryptographically
+    // derived). Honor it so visuals match the audit log.
+    const finalTypeId = casino?.server?.ball_type || typeId;
+    const type = BALL_TYPES[finalTypeId] || BALL_TYPES.gold;
     const x = st.cx + (Math.random() - 0.5) * 4;
     const y = st.dispenser
       ? st.dispenser.y + st.dispenser.r * 0.92
@@ -301,9 +309,11 @@ export default function Scene() {
       trail: [], settled: false, settleAt: 0,
       bonusMult: 1,
       hitMultStars: new Set(),
-      // Casino RNG outcome — predetermined landing slot for fairness.
       targetSlot: casino ? casino.slot : null,
       casinoNonce: casino ? casino.nonce : null,
+      // Server resolution carries the authoritative cash. Null in
+      // local-RNG mode → local resolveLanding handles it.
+      serverDrop: casino?.server || null,
     });
     Sounds.playDrop();
   }
@@ -593,27 +603,51 @@ export default function Scene() {
         b.settled = true;
         b.settleAt = now;
 
-        const slotM = st.slotMs[best] ?? 0.5;
-        const finalMult = slotM * b.type.payoutMul * b.bonusMult;
-        const finalBet = b.bet;
-        // Manually resolve through the store, accounting for bonusMult
         const G = useGame.getState();
-        const payout = finalBet * finalMult;
-        const profit = payout - finalBet;
-        const newStreak = profit > 0 ? G.streak + 1 : 0;
-        useGame.setState({
-          balance: G.balance + payout,
-          totalWon: G.totalWon + payout,
-          drops: G.drops + 1,
-          biggestMult: Math.max(G.biggestMult, finalMult),
-          history: [{
-            time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-            bet: finalBet, payout, mult: finalMult, type: b.type.id,
-          }, ...G.history].slice(0, 18),
-          lastWin: { profit, mult: finalMult, type: b.type, slotIndex: best, bonusMult: b.bonusMult },
-          streak: newStreak,
-          lastWinTime: profit > 0 ? now : G.lastWinTime,
-        });
+        let finalMult, payout, profit, displayBet;
+        if (b.serverDrop) {
+          // SERVER MODE — server already debited the bet and credited
+          // the payout. Just animate + update history. Balance is
+          // already in sync from the rollDrop response.
+          const sd = b.serverDrop;
+          finalMult = sd.final_multiplier;
+          payout = sd.payout_minor / 100;       // minor → display unit
+          displayBet = sd.cost_minor / 100;
+          profit = payout - displayBet;
+          useGame.setState({
+            totalWon: G.totalWon + payout,
+            drops: G.drops + 1,
+            biggestMult: Math.max(G.biggestMult, finalMult),
+            history: [{
+              time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+              bet: displayBet, payout, mult: finalMult, type: sd.ball_type,
+              nonce: sd.nonce,
+            }, ...G.history].slice(0, 18),
+            lastWin: { profit, mult: finalMult, type: b.type, slotIndex: best, bonusMult: 1, nonce: sd.nonce },
+            streak: profit > 0 ? G.streak + 1 : 0,
+            lastWinTime: profit > 0 ? now : G.lastWinTime,
+          });
+        } else {
+          // LOCAL-RNG demo mode — resolve locally (Scene is the source of truth).
+          const slotM = st.slotMs[best] ?? 0.5;
+          finalMult = slotM * b.type.payoutMul * b.bonusMult;
+          displayBet = b.bet;
+          payout = displayBet * finalMult;
+          profit = payout - displayBet;
+          useGame.setState({
+            balance: G.balance + payout,
+            totalWon: G.totalWon + payout,
+            drops: G.drops + 1,
+            biggestMult: Math.max(G.biggestMult, finalMult),
+            history: [{
+              time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+              bet: displayBet, payout, mult: finalMult, type: b.type.id,
+            }, ...G.history].slice(0, 18),
+            lastWin: { profit, mult: finalMult, type: b.type, slotIndex: best, bonusMult: b.bonusMult },
+            streak: profit > 0 ? G.streak + 1 : 0,
+            lastWinTime: profit > 0 ? now : G.lastWinTime,
+          });
+        }
         landingBurst(b.x, b.y, b.type.glow);
         addFloatNum(b.x, b.y, profit, finalMult, b.bonusMult);
         if (finalMult >= 5) {
